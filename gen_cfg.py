@@ -68,8 +68,10 @@ parser.add_argument("binaryInputs", help="Number of binary inputs.")
 parser.add_argument("--output", "-o", default="cfg.ini", help="Name of output ini file to be generated.")
 parser.add_argument("--ip", help="Destination IP of the CRIO", default = '127.0.0.1')
 parser.add_argument("--path", help="Bitfile path", default = '/change/me/')
+parser.add_argument("--sourceFilesFolder", "-s", help="Folder containing all files necessary for ini generation", default = '.')
 parser.add_argument("--bfname", help="Bitfile name", default = 'NiFpga_CrioLinux.lvbitx')
 parser.add_argument("--smfname", help="Shared memory file path and name", default = '/labview_linux_sm')
+
 
 
 # read arguments from the command line
@@ -112,7 +114,7 @@ for line in lines:
             fpgavarCount += 1
             #found BI. Parse associated BI file.
             bi = result.group(1)
-            bilist = [bi.rstrip() for bi in open('{}.list'.format(bi))]
+            bilist = [bi.rstrip() for bi in open('{}/{}.list'.format(args.sourceFilesFolder, bi))]
             bidict = { i : bilist[i] for i in range(0, len(bilist) ) }
         else:
             result = re.search('IndicatorSgl_(Mod[a-zA-Z0-9]*) = 0x([A-F0-9]{5})', line)
@@ -133,7 +135,7 @@ for line in lines:
 
 #process RT variables if enabled
 if (args.useSM == 1):
-    rtlist = [rt.rstrip() for rt in open('RT.list')]
+    rtlist = [rt.rstrip() for rt in open('{}/RT.list'.format(args.sourceFilesFolder))]
     for i, val in enumerate(rtlist):
         result = re.search('RT_[A-Z0-9]{3}_AO', val)
         if (result is not None):
