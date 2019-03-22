@@ -63,16 +63,18 @@ parser = argparse.ArgumentParser()
 
 # Input parameters
 parser.add_argument("input",  help="Name of input header file to be processed.")
-parser.add_argument("useSM", help="Use shared memory. 0=not use, 1=use", type=int)
 parser.add_argument("binaryInputs", help="Number of binary inputs.")
+parser.add_argument("--useSM", "-u", help="Use shared memory", action='store_true')
 parser.add_argument("--output", "-o", default="cfg.ini", help="Name of output ini file to be generated.")
 parser.add_argument("--ip", help="Destination IP of the CRIO", default = '127.0.0.1')
 parser.add_argument("--path", help="Bitfile path", default = '/change/me/')
 parser.add_argument("--sourceFilesFolder", "-s", help="Folder containing all files necessary for ini generation", default = '.')
-parser.add_argument("--bfname", help="Bitfile name", default = 'NiFpga_CrioLinux.lvbitx')
 parser.add_argument("--smfname", help="Shared memory file path and name", default = '/labview_linux_sm')
-
-
+parser.add_argument("--aikey", help="AI keyword that any AI variable will start with in the headerfile. Default is <Mod>.", default = 'Mod')
+parser.add_argument("--aokey", help="AO keyword that any AO variable will start with in the headerfile Default is <Mod>.", default = 'Mod')
+parser.add_argument("--bokey", help="BO keyword that any BO variable will start with in the headerfile. Default is <Mod>.", default = 'Mod')
+parser.add_argument("--bikey", help="BI keyword that any AI variable will start with in the headerfile. Default is <BI>.", default = 'BI')
+parser.add_argument("--scalerkey", help="Scaler keyword that any Scaler variable will be followed with in the headerfile. Default is <SCALER>.", default = 'SCALER')
 
 # read arguments from the command line
 args = parser.parse_args()
@@ -89,8 +91,7 @@ if (args.useSM !=0 and args.useSM != 1):
 # *.ini key dictionaries
 settings = {'Destination Crio IP' : args.ip,
             'Path':args.path,
-            'Bitfile Name': args.bfname,
-            'Use Shared Memory': args.useSM,
+            'Use Shared Memory': 1 if(args.useSM) else 0,
             'Shared Memory Path': args.smfname}
 biaddr = {}
 boaddr = {}
@@ -99,38 +100,82 @@ aiaddr = {}
 bilist = []
 rtlist = []
 bidict = collections.OrderedDict()
-
+scalers = collections.defaultdict(dict)
 rtvarCount = 0;
 fpgavarCount = 0;
 
 for line in lines:
+
+    # Extracting scaler data
+    result = re.search('ControlArrayU32_PresetValues_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+    if (result is not None):
+        scalers[result.group(1)]['Preset Values']=(result.group(2))
+        fpgavarCount += 1
+    else:
+        result = re.search('ControlBool_Enable_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+        if (result is not None):
+            scalers[result.group(1)]['Enable']=(result.group(2))
+            fpgavarCount += 1    
+        else:
+            result = re.search('ControlArrayBool_Gate_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+            if (result is not None):
+                scalers[result.group(1)]['Gate']=(result.group(2))
+                fpgavarCount += 1  
+            else:
+                result = re.search('ControlBool_OneShot_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                if (result is not None):
+                    scalers[result.group(1)]['OneShot']=(result.group(2))
+                    fpgavarCount += 1                  
+                else:
+                    result = re.search('IndicatorArrayU32_Counter_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                    if (result is not None):
+                        scalers[result.group(1)]['Counters']=(result.group(2))
+                        fpgavarCount += 1                   
+                    else:
+                        result = re.search('IndicatorArrayU32Size_Counter_('+args.scalerkey+'[a-zA-Z0-9_]*) = ([0-9]+)', line)
+                        if (result is not None):
+                            scalers[result.group(1)]['Number of Counters']=(result.group(2))
+                            fpgavarCount += 1                 
+                        else:
+                            result = re.search('IndicatorBool_Done_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                            if (result is not None):
+                                scalers[result.group(1)]['Done']=(result.group(2))
+                                fpgavarCount += 1                    
+    
+    
+    # Extracting Settings                       
     result = re.search('_Signature\s*=\s*\"([A-F0-9]{32})\"', line)
     if (result is not None):
         settings['Signature']=(result.group(1))
     else:
-        result = re.search('IndicatorU64_(BI[a-zA-Z0-9]*) = 0x([A-F0-9]{5})', line)
+        result = re.search('_Bitfile \"([a-zA-Z0-9_]+.lvbitx)\"', line)
         if (result is not None):
-            biaddr[result.group(1)]=(result.group(2))
-            fpgavarCount += 1
-            #found BI. Parse associated BI file.
-            bi = result.group(1)
-            bilist = [bi.rstrip() for bi in open('{}/{}.list'.format(args.sourceFilesFolder, bi))]
-            bidict = { i : bilist[i] for i in range(0, len(bilist) ) }
+            settings['Bitfile Name']=(result.group(1))
         else:
-            result = re.search('IndicatorSgl_(Mod[a-zA-Z0-9]*) = 0x([A-F0-9]{5})', line)
+            # Extracting BI, BO, AI, AO  
+            result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
             if (result is not None):
-                aiaddr[result.group(1)]=(result.group(2))
-                fpgavarCount += 1                
+                biaddr[result.group(1)]=(result.group(2))
+                fpgavarCount += 1
+                #found BI. Parse associated BI file.
+                bi = result.group(1)
+                bilist = [bi.rstrip() for bi in open('{}/{}.list'.format(args.sourceFilesFolder, bi))]
+                bidict = { i : bilist[i] for i in range(0, len(bilist) ) }
             else:
-                result = re.search('ControlSgl_(Mod[a-zA-Z0-9]*) = 0x([A-F0-9]{5})', line)
+                result = re.search('IndicatorSgl_('+args.aikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
                 if (result is not None):
-                    aoaddr[result.group(1)]=(result.group(2))         
-                    fpgavarCount += 1
+                    aiaddr[result.group(1)]=(result.group(2))
+                    fpgavarCount += 1                
                 else:
-                    result = re.search('ControlBool_(Mod[a-zA-Z0-9]*) = 0x([A-F0-9]{5})', line)
+                    result = re.search('ControlSgl_('+args.aokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
                     if (result is not None):
-                        boaddr[result.group(1)]=(result.group(2))                              
+                        aoaddr[result.group(1)]=(result.group(2))         
                         fpgavarCount += 1
+                    else:
+                        result = re.search('ControlBool_('+args.bokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                        if (result is not None):
+                            boaddr[result.group(1)]=(result.group(2))                              
+                            fpgavarCount += 1
 
 
 #process RT variables if enabled
@@ -164,6 +209,13 @@ with open(args.output , "w") as f:
     printToFile(f, 'AO', aoaddr)
     printToFile(f, 'AI', aiaddr)
     printToFile(f, 'BO', boaddr)
+    # Convert scaler names to list then to dictionary for printing
+    scalerNameList = list(scalers.keys())
+    scalerNamesDict = { scalerNameList[i] : i for i in range(0, len(scalerNameList) ) }
+    printToFile(f, 'SCALERS', scalerNamesDict)
+    for scaler in scalers:
+        printToFile(f, scaler, scalers[scaler])
+
 
     
        
