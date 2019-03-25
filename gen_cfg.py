@@ -78,9 +78,12 @@ header = '; Automatically generated ini file for CRIO library\n\
 ;Checks implemented in the library:\n\
 ; Checking for same address / index within a category has been\n\
 ; implemented. An exception is throw upon occurance.\n\
-\n\
-\n\
-\n\n'
+;\n\
+;\n\
+;Note that the binary input address that comes from the FPGA is always set to\n\
+;BI0. The library looks for this specific string, so it must be BI0 although \n\
+;you may have named it differently in the FPGA VI.\n\
+\n\n\n\n'
 
 
 # initiate the parser
