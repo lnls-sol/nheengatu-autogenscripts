@@ -268,10 +268,11 @@ tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, FREQ, PIN}}\n
 tplsclrbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{3}\"}}\n'
 
 
-#Generate templates   
+#Generate templates  
+bidict_inverted = {v: k for k, v in bidict.items()} 
 buildTemplate(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db", 'ao')
 buildTemplate(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db", 'ai')
-buildTemplate(tplhdr, tplbdy, args.beamline, args.bidtyp, biaddr, "devBICRIO.db", 'bi')
+buildTemplate(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db", 'bi')
 buildTemplate(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db", 'bo')
 buildTemplate(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devScalerCRIO.db", 'scaler', args.freq)       
 
