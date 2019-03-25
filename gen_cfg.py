@@ -186,11 +186,10 @@ for line in lines:
             # Extracting BI, BO, AI, AO  
             result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
             if (result is not None):
-                biaddr[result.group(1)]=(result.group(2))
+                biaddr["BI0"]=(result.group(2))
                 fpgavarCount += 1
                 #found BI. Parse associated BI file.
-                bi = result.group(1)
-                bilist = [bi.rstrip() for bi in open('{}/{}.list'.format(args.src, bi))]
+                bilist = [bi.rstrip() for bi in open('{}/{}.list'.format(args.src, result.group(1)))]
                 bidict = { i : bilist[i] for i in range(0, len(bilist) ) }
             else:
                 result = re.search('IndicatorSgl_('+args.aikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
@@ -245,7 +244,7 @@ with open("{}/cfg.ini".format(args.dst) , "w") as f:
     f.write(header)
     printToFile(f, 'Settings', settings)
     printToFile(f, 'BIAddresses', biaddr)
-    printToFile(f, bi, bidict)
+    printToFile(f, 'BI0', bidict)
     printToFile(f, 'AO', aoaddr)
     printToFile(f, 'AI', aiaddr)
     printToFile(f, 'BO', boaddr)
