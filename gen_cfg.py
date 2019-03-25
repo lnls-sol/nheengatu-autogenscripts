@@ -89,7 +89,7 @@ parser = argparse.ArgumentParser(description=description)
 # Input parameters
 parser.add_argument("input",  help="Name of input header file to be processed")
 parser.add_argument("-u", "--useSM", help="Use shared memory", action='store_true')
-parser.add_argument("-d", "--dst", default="out", help="Name of the output folder. Default is <out>")
+parser.add_argument("-d", "--dst", default="config", help="Name of the output folder. Default is <config>")
 parser.add_argument("--ip", help="Destination IP of the CRIO. Default is <127.0.0.1>", default = '127.0.0.1')
 parser.add_argument( "-p", "--path", help="Bitfile path. Default is </usr/local/epics/apps/config/crio-ioc/>", default = '/usr/local/epics/apps/config/crio-ioc/')
 parser.add_argument("-s", "--src", help="Folder containing all files necessary for ini/template generation", default = '.')
