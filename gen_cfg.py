@@ -71,9 +71,7 @@ header = '; Automatically generated ini file for CRIO library\n\
 ;        Signed 32 bit   : RT_I32_<NAME>\n\
 ;        Signed 16 bit   : RT_I16_<NAME>\n\
 ;        Signed 08 bit   : RT_I08_<NAME>\n\
-;\n\
-;    FPGA variables naming:\n\
-;        FPGA variables must have one of the following keywords:\n\
+;        <NAME> must start with one of the following keywords:\n\
 ;        AI, AO, BI, BO \n\
 ;\n\
 ;\n\
@@ -118,10 +116,6 @@ args = parser.parse_args()
 with open(args.input) as f:
     lines = f.readlines()
 
-if (args.useSM !=0 and args.useSM != 1):
-    print("useSM parameter must be 0 or 1.")
-    parser.print_help()
-    sys.exit(2)    
     
 # *.ini key dictionaries
 settings = {'Destination Crio IP' : args.ip,
@@ -216,25 +210,31 @@ for line in lines:
 
 
 #process RT variables if enabled
-if (args.useSM == 1):
+
+if (args.useSM):
     rtlist = [rt.rstrip() for rt in open('{}/RT.list'.format(args.src))]
     for i, val in enumerate(rtlist):
         result = re.search('RT_[A-Z0-9]{3}_AO', val)
         if (result is not None):
             aoaddr[val]=i 
             rtvarCount += 1
-        result = re.search('RT_BOL_BO', val)
-        if (result is not None):
-            boaddr[val]=i
-            rtvarCount += 1            
-        result = re.search('RT_[A-Z0-9]{3}_AI', val)
-        if (result is not None):
-            aiaddr[val]=i
-            rtvarCount += 1            
-        result = re.search('RT_BOL_BI', val)
-        if (result is not None):
-            biaddr[val]=i
-            rtvarCount += 1            
+        else: 
+            result = re.search('RT_BOL_BO', val)
+            if (result is not None):
+                boaddr[val]=i
+                rtvarCount += 1   
+            else:         
+                result = re.search('RT_[A-Z0-9]{3}_AI', val)
+                if (result is not None):
+                    aiaddr[val]=i
+                    rtvarCount += 1 
+                else:           
+                    result = re.search('RT_BOL_BI', val)
+                    if (result is not None):
+                        biaddr[val]=i
+                        rtvarCount += 1     
+                    else:
+                        print("Found {} in RT.list file, but could not classify it.".format(val))       
 
 if not os.path.exists(args.dst):
     os.makedirs(args.dst)
