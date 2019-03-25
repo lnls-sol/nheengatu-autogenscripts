@@ -29,7 +29,7 @@ def buildTemplate(tplhdr, tplbdy, beamline, dtype, pins, db, fname, freq = -1):
             tpls = tpls + tplbdy.format(beamline, dtype, freq, key)
     else: # OTHER
         for key, val in pins.items():
-            tpls = tpls + tplbdy.format(beamline, dtype, key)
+            tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper())
 
     tpls = tpls + "\n}"
     with open("{}/{}.template".format(args.dst, fname) , "w") as f:
@@ -91,7 +91,7 @@ parser.add_argument("input",  help="Name of input header file to be processed")
 parser.add_argument("-u", "--useSM", help="Use shared memory", action='store_true')
 parser.add_argument("-d", "--dst", default="out", help="Name of the output folder. Default is <out>")
 parser.add_argument("--ip", help="Destination IP of the CRIO. Default is <127.0.0.1>", default = '127.0.0.1')
-parser.add_argument( "-p", "--path", help="Bitfile path. Default is </CHANGEME/>", default = '/CHANGEME/')
+parser.add_argument( "-p", "--path", help="Bitfile path. Default is </usr/local/epics/apps/config/crio-ioc/>", default = '/usr/local/epics/apps/config/crio-ioc/')
 parser.add_argument("-s", "--src", help="Folder containing all files necessary for ini/template generation", default = '.')
 parser.add_argument("--smfname", help="Shared memory file path and name", default = '/labview_linux_sm')
 parser.add_argument("--aikey", help="AI keyword that any AI variable will start with in the headerfile. Default is <Mod>", default = 'Mod')
@@ -105,7 +105,7 @@ parser.add_argument("--bidtyp", help="DTYPE of BI record", default = 'CrioBI')
 parser.add_argument("--aidtyp", help="DTYPE of AI record", default = 'CrioAI')
 parser.add_argument("--bodtyp", help="DTYPE of BO record", default = 'CrioBO')
 parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
-parser.add_argument("--crio", help="Name of the CRIO. Default is <CHANGEME>", default = 'CHANGEME')
+parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 
 
@@ -263,9 +263,9 @@ with open("{}/cfg.ini".format(args.dst) , "w") as f:
 
 #template definitions
 tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN}}\n'
-tplbdy = '{{\"{0}", \"'+args.crio+':CHANGEME:CHANGEME\", \"{1}\", \"{2}\"}}\n'
+tplbdy = '{{\"{0}", \"'+args.crio+':9:{3}\", \"{1}\", \"{2}\"}}\n'
 tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, FREQ, PIN}}\n'
-tplsclrbdy = '{{\"{0}", \"'+args.crio+':CHANGEME:CHANGEME\", \"{1}\", \"{2}\", \"{3}\"}}\n'
+tplsclrbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{3}\"}}\n'
 
 
 #Generate templates   
