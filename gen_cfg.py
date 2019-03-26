@@ -13,6 +13,8 @@ import argparse
 import collections
 import os 
 from string import Template
+from shutil import copyfile
+
 
 ### HELPER FUNCTIONS
 def printToFile(file, key, items):
@@ -136,7 +138,10 @@ scalers = collections.defaultdict(dict)
 rtvarCount = 0;
 fpgavarCount = 0;
 
+if os.path.exists(args.dst):
+    os.system("rm -rf {0}".format(args.dst)) 
 
+os.makedirs(args.dst)
 
 for line in lines:
 
@@ -185,6 +190,7 @@ for line in lines:
         result = re.search('_Bitfile \"([a-zA-Z0-9_]+.lvbitx)\"', line)
         if (result is not None):
             settings['Bitfile Name']=(result.group(1))
+            copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/{1}".format(args.dst,result.group(1)))
         else:
             # Extracting BI, BO, AI, AO  
             result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
@@ -238,8 +244,6 @@ if (args.useSM):
                     else:
                         print("Found {} in RT.list file, but could not classify it.".format(val))       
 
-if not os.path.exists(args.dst):
-    os.makedirs(args.dst)
 
 print( "{} RT variables processed\n{} FPGA addresses extracted".format(rtvarCount, fpgavarCount))
 with open("{}/cfg.ini".format(args.dst) , "w") as f:
@@ -278,4 +282,6 @@ buildTemplate(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devB
 buildTemplate(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db", 'bo')
 buildTemplate(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devScalerCRIO.db", 'scaler', args.freq)       
 
+
+print("Check {0} folder, and modify the template files.".format(args.dst))
 
