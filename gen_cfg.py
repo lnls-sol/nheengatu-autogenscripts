@@ -14,7 +14,7 @@ import collections
 import os 
 from string import Template
 from shutil import copyfile
-
+import glob
 
 ### HELPER FUNCTIONS
 def printToFile(file, key, items):
@@ -92,7 +92,6 @@ header = '; Automatically generated ini file for CRIO library\n\
 parser = argparse.ArgumentParser(description=description)
 
 # Input parameters
-parser.add_argument("input",  help="Name of input header file to be processed")
 parser.add_argument("-u", "--useSM", help="Use shared memory", action='store_true')
 parser.add_argument("-d", "--dst", default="config", help="Name of the output folder. Default is <config>")
 parser.add_argument("--ip", help="Destination IP of the CRIO. Default is <127.0.0.1>", default = '127.0.0.1')
@@ -117,8 +116,14 @@ parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CR
 # read arguments from the command line
 args = parser.parse_args()
 
-# read header file
-with open(args.input) as f:
+# search for header file
+headerFilesFound = glob.glob("{0}/*.h".format(args.src));
+if (len(headerFilesFound) > 1): 
+    print("Found {0} header files in {1} folder. Exclude others and try again.".format(len(headerFilesFound), args.src))
+    print(headerFilesFound)
+    sys.exit()
+
+with open(headerFilesFound[0]) as f:
     lines = f.readlines()
 
     
@@ -141,6 +146,7 @@ fpgavarCount = 0;
 if os.path.exists(args.dst):
     os.system("rm -rf {0}".format(args.dst)) 
 
+    
 os.makedirs(args.dst)
 
 for line in lines:
