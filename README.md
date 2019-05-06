@@ -31,6 +31,9 @@ Must abide by the following syntax RT_VARTYPE_VARNAMEX. VARNAME must be one of t
 X can be a unique number assigned by the user. The VARTYPE has to be one of the following
  * BOL, DBL, SGL, I64, I32, I16, I08, U64, U32, U16, U08
 
+## crio-ioc.cmd
+
+This is the standard cmd file. Can be used as is.
 
 ## labview2018vm.sh
 
