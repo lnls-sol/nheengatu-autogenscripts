@@ -11,7 +11,7 @@ FPGA C API generated header.
     $ ./gen_cfg.py -h
  
 ### Running example
-    $ ./gen_cfg.py ./gen_cfg_example/NiFpga_fpga_all_example.h -s ./gen_cfg_example/ -u
+    $ ./gen_cfg.py -s ./gen_cfg_example/ -u
 
 
 ### Notes
