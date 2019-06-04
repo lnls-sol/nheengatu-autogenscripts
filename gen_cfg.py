@@ -24,18 +24,22 @@ def printToFile(file, key, items):
     f.write("\n\n")     
 
 
-def buildTemplate(tplhdr, tplbdy, beamline, dtype, pins, db, fname, freq = -1):
+def buildSub(tplhdr, tplbdy, beamline, dtype, pins, db, fname, record, wf, freq = 0):
     tpls = tplhdr.format(db)
-    if(freq != -1): #SCALER
+    if(record == 0): #SCALER
         for key in pins.keys():
             tpls = tpls + tplbdy.format(beamline, dtype, freq, key)
-    else: # OTHER
-        for key, val in pins.items():
-            tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper())
+    else: # Waveform
+        if (record == 1):
+            for key in pins.keys():
+                tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper(), wf[key]['TypeEPICS'], wf[key]['Size'])
+        else:
+            for key, val in pins.items():
+                tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper())
 
     tpls = tpls + "\n}"
-    with open("{}/{}.template".format(args.dst, fname) , "w") as f:
-        print("Generating {}/{}.template file".format(args.dst, fname))
+    with open("{}/{}.db.sub".format(args.dst, fname) , "w") as f:
+        print("Generating {}/{}.db.sub file".format(args.dst, fname))
         f.write(tpls)
         
 
@@ -112,6 +116,7 @@ parser.add_argument("--bidtyp", help="DTYPE of BI record", default = 'CrioBI')
 parser.add_argument("--aidtyp", help="DTYPE of AI record", default = 'CrioAI')
 parser.add_argument("--bodtyp", help="DTYPE of BO record", default = 'CrioBO')
 parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
+parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioCrioWAVEFORM')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 parser.add_argument("--binum", help="The total number of BI variables. Default is <0>", default = '0')
@@ -199,11 +204,29 @@ for line in lines:
         waveforms[result.group(2)]['Address']=(result.group(3))
         if (result.group(1) == 'I8'):
             waveforms[result.group(2)]['Type']=('I08')
+            waveforms[result.group(2)]['TypeEPICS']='CHAR'
         else :
             if (result.group(1) == 'U8'):
                 waveforms[result.group(2)]['Type']=('U08')
+                waveforms[result.group(2)]['TypeEPICS']='UCHAR'
             else:
                 waveforms[result.group(2)]['Type']=(result.group(1).upper())
+                if (result.group(1) == 'U16'):
+                    waveforms[result.group(2)]['TypeEPICS']='USHORT'
+                else:
+                    if (result.group(1) == 'I16'):
+                        waveforms[result.group(2)]['TypeEPICS']='SHORT' 
+                    else:
+                        if (result.group(1) == 'I32'):
+                            waveforms[result.group(2)]['TypeEPICS']='LONG'
+                        else:
+                            if (result.group(1) == 'U32'):
+                                waveforms[result.group(2)]['TypeEPICS'] = 'ULONG'
+                            else:
+                                if (result.group(1) == 'SGL'):
+                                    waveforms[result.group(2)]['TypeEPICS'] = 'FLOAT'     
+                                else : 
+                                    waveforms[result.group(2)]['TypeEPICS'] = 'DOUBLE'                  
         fpgavarCount += 1
     else:
         result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)Size_('+args.waveformkey+'[a-zA-Z0-9_]*) = ([0-9]+)', line)
@@ -273,17 +296,37 @@ if (args.useSM):
                         biaddr[val]=i
                         rtvarCount += 1     
                     else:
-                        result = re.search('(RT_(I08|U08|I16|U16|I32|U32|I64|U64|SGL|DBL)_WF[a-zA-Z0-9_]*)[\s*]([0-9]+)', val)
+                        result = re.search('(RT_(I08|U08|I16|U16|I32|U32|I64|U64|SGL|DBL|BOL)_WF[a-zA-Z0-9_]*)[\s*]([0-9]+)', val)
                         if (result is not None):
-                            waveforms[result.group(1)]['Address']=(i)
-                            waveforms[result.group(1)]['Size']=(result.group(3))
-                            if (result.group(1) == 'I8'):
-                                waveforms[result.group(1)]['Type']=('I08')
+                            waveforms[result.group(1)]['Address']=i
+                            waveforms[result.group(1)]['Size']=result.group(3)
+                            waveforms[result.group(1)]['Type']=result.group(2).upper()
+                            
+                            if (result.group(2) == 'I08'):
+                                waveforms[result.group(1)]['TypeEPICS']='CHAR'
                             else :
-                                if (result.group(1) == 'U8'):
-                                    waveforms[result.group(1)]['Type']=('U08')
+                                if (result.group(2) == 'U08'):
+                                    waveforms[result.group(1)]['TypeEPICS']='UCHAR'
                                 else:
-                                    waveforms[result.group(1)]['Type']=(result.group(2).upper())
+                                    if (result.group(2) == 'U16'):
+                                        waveforms[result.group(1)]['TypeEPICS']='USHORT'
+                                    else:
+                                        if (result.group(2) == 'I16'):
+                                            waveforms[result.group(1)]['TypeEPICS']='SHORT' 
+                                        else:
+                                            if (result.group(2) == 'I32'):
+                                                waveforms[result.group(1)]['TypeEPICS']='LONG'
+                                            else:
+                                                if (result.group(2) == 'U32'):
+                                                    waveforms[result.group(1)]['TypeEPICS'] = 'ULONG'
+                                                else:
+                                                    if (result.group(2) == 'SGL'):
+                                                        waveforms[result.group(1)]['TypeEPICS'] = 'FLOAT'     
+                                                    else : 
+                                                        if (result.group(2) == 'BOL'):
+                                                            waveforms[result.group(1)]['TypeEPICS']='CHAR'                                                     
+                                                        else:
+                                                            waveforms[result.group(1)]['TypeEPICS'] = 'DOUBLE'                                                  
                             rtvarCount += 1    
                         else:                    
                             print("Found {} in RT.list file, but could not classify it.".format(val))       
@@ -317,20 +360,21 @@ with open("{}/cfg.ini".format(args.dst) , "w") as f:
         
 
 #template definitions
-tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN}}\n'
-tplbdy = '{{\"{0}", \"'+args.crio+':9:{3}\", \"{1}\", \"{2}\"}}\n'
-tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, FREQ, PIN}}\n'
-tplsclrbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{3}\"}}\n'
+tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, DESC}}\n'
+tplbdy = '{{\"{0}", \"'+args.crio+':9:{3}\", \"{1}\", \"{2}\", \"\"}}\n'
+tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, FREQ, PIN, DESC}}\n'
+tplsclrbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{3}\", \"\"}}\n'
+tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
+tplwfbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{4}\", \"{5}\", \"\"}}\n'
 
-
-#Generate templates  
+#Generate substitutions  
 bidict_inverted = {v: k for k, v in bidict.items()} 
-buildTemplate(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db", 'ao')
-buildTemplate(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db", 'ai')
-buildTemplate(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db", 'bi')
-buildTemplate(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db", 'bo')
-buildTemplate(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devScalerCRIO.db", 'scaler', args.freq)       
+buildSub(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao', 2, dict())
+buildSub(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', 2, dict())
+buildSub(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', 2, dict())
+buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', 2, dict())
+buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', 0, dict(), args.freq )
+buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', 1, waveforms)
 
-
-print("Check {0} folder, and modify the template files.".format(args.dst))
+print("Check {0} folder, and modify the substitution files.".format(args.dst))
 
