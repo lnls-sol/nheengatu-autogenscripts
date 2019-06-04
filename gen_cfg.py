@@ -116,7 +116,7 @@ parser.add_argument("--bidtyp", help="DTYPE of BI record", default = 'CrioBI')
 parser.add_argument("--aidtyp", help="DTYPE of AI record", default = 'CrioAI')
 parser.add_argument("--bodtyp", help="DTYPE of BO record", default = 'CrioBO')
 parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
-parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioCrioWAVEFORM')
+parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioWAVEFORM')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 parser.add_argument("--binum", help="The total number of BI variables. Default is <0>", default = '0')
@@ -223,7 +223,7 @@ for line in lines:
                             if (result.group(1) == 'U32'):
                                 waveforms[result.group(2)]['TypeEPICS'] = 'ULONG'
                             else:
-                                if (result.group(1) == 'SGL'):
+                                if (result.group(1) == 'Sgl'):
                                     waveforms[result.group(2)]['TypeEPICS'] = 'FLOAT'     
                                 else : 
                                     waveforms[result.group(2)]['TypeEPICS'] = 'DOUBLE'                  
