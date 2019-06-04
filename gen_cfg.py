@@ -61,7 +61,7 @@ header = '; Automatically generated ini file for CRIO library\n\
 ;        The keyword RT_ is reserved for variables that are defined \n\
 ;        in labview RT. Do not use this reserved word in your names\n\
 ;        unless it is an RT variable, otherwise it will be ignored!\n\
-;        In case of AI, AO, BI, BO, Keywords for realtime double, single, \n\
+;        In case of AI, AO, BI, BO, WF, Keywords for realtime double, single, \n\
 ;        signed 8, 16, 32, 64 and unsigned 8, 16, 32, 64 are defined as follows\n\
 ;        Double          : RT_DBL_<NAME>\n\
 ;        Single          : RT_SGL_<NAME>\n\
@@ -74,9 +74,7 @@ header = '; Automatically generated ini file for CRIO library\n\
 ;        Signed 16 bit   : RT_I16_<NAME>\n\
 ;        Signed 08 bit   : RT_I08_<NAME>\n\
 ;        <NAME> must start with one of the following keywords:\n\
-;        AI, AO, BI, BO. \n\
-;        In case of Waveform, the following naming must be followed: \n\
-;        RT_<NAME>\n\
+;        AI, AO, BI, BO, WF. \n\
 ;        <Name> can be anything you wish.\n\
 ;\n\
 ;\n\
