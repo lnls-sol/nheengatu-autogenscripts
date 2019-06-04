@@ -61,8 +61,8 @@ header = '; Automatically generated ini file for CRIO library\n\
 ;        The keyword RT_ is reserved for variables that are defined \n\
 ;        in labview RT. Do not use this reserved word in your names\n\
 ;        unless it is an RT variable, otherwise it will be ignored!\n\
-;        Keywords for realtime double, single, signed 8, 16, 32, 64 \n\
-;        and unsigned 8, 16, 32, 64 are defined as follows\n\
+;        In case of AI, AO, BI, BO, Keywords for realtime double, single, \n\
+;        signed 8, 16, 32, 64 and unsigned 8, 16, 32, 64 are defined as follows\n\
 ;        Double          : RT_DBL_<NAME>\n\
 ;        Single          : RT_SGL_<NAME>\n\
 ;        Unsigned 64 bit : RT_U64_<NAME>\n\
@@ -74,7 +74,10 @@ header = '; Automatically generated ini file for CRIO library\n\
 ;        Signed 16 bit   : RT_I16_<NAME>\n\
 ;        Signed 08 bit   : RT_I08_<NAME>\n\
 ;        <NAME> must start with one of the following keywords:\n\
-;        AI, AO, BI, BO \n\
+;        AI, AO, BI, BO. \n\
+;        In case of Waveform, the following naming must be followed: \n\
+;        RT_<NAME>\n\
+;        <Name> can be anything you wish.\n\
 ;\n\
 ;\n\
 ;Checks implemented in the library:\n\
@@ -98,11 +101,13 @@ parser.add_argument("--ip", help="Destination IP of the CRIO. Default is <127.0.
 parser.add_argument( "-p", "--path", help="Bitfile path. Default is </usr/local/epics/apps/config/crio-ioc/>", default = '/usr/local/epics/apps/config/crio-ioc/')
 parser.add_argument("-s", "--src", help="Folder containing all files necessary for ini/template generation", default = '.')
 parser.add_argument("--smfname", help="Shared memory file path and name", default = '/labview_linux_sm')
+parser.add_argument("--smsize", help="Shared memory size. Default is <4096>", default = '4096')
 parser.add_argument("--aikey", help="AI keyword that any AI variable will start with in the headerfile. Default is <Mod>", default = 'Mod')
 parser.add_argument("--aokey", help="AO keyword that any AO variable will start with in the headerfile Default is <Mod>", default = 'Mod')
 parser.add_argument("--bokey", help="BO keyword that any BO variable will start with in the headerfile. Default is <Mod>", default = 'Mod')
 parser.add_argument("--bikey", help="BI keyword that any AI variable will start with in the headerfile. Default is <BI>", default = 'BI')
 parser.add_argument("--scalerkey", help="Scaler keyword that any Scaler variable will be followed with in the headerfile. Default is <SCALER>", default = 'SCALER')
+parser.add_argument("--waveformkey",help="Waveform keyword that any Waveform variable will be followed with in the headerfile. Default is <WF>", default = 'WF')
 parser.add_argument("--beamline", help="Name of the beamline (for template file generation). Default is <SOL>", default = 'SOL')
 parser.add_argument("--freq", help="Scaler Frequency. Default is <10000000>", default = '10000000')
 parser.add_argument("--bidtyp", help="DTYPE of BI record", default = 'CrioBI')
@@ -111,7 +116,8 @@ parser.add_argument("--bodtyp", help="DTYPE of BO record", default = 'CrioBO')
 parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
-
+parser.add_argument("--binum", help="The total number of BI variables. Default is <0>", default = '0')
+parser.add_argument("--rtnum", help="The total number of RT variables. Default is <0>", default = '0')
 
 # read arguments from the command line
 args = parser.parse_args()
@@ -131,7 +137,8 @@ with open(headerFilesFound[0]) as f:
 settings = {'Destination Crio IP' : args.ip,
             'Path':args.path,
             'Use Shared Memory': 1 if(args.useSM) else 0,
-            'Shared Memory Path': args.smfname}
+            'Shared Memory Path': args.smfname,
+            'Shared Memory Size': args.smsize}
 biaddr = {}
 boaddr = {}
 aoaddr = {}
@@ -140,6 +147,7 @@ bilist = []
 rtlist = []
 bidict = collections.OrderedDict()
 scalers = collections.defaultdict(dict)
+waveforms = collections.defaultdict(dict)
 rtvarCount = 0;
 fpgavarCount = 0;
 
@@ -186,7 +194,26 @@ for line in lines:
                             if (result is not None):
                                 scalers[result.group(1)]['Done']=(result.group(2))
                                 fpgavarCount += 1                    
-    
+
+    # Extracting waveform data
+    result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)_('+args.waveformkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+    if (result is not None):
+        waveforms[result.group(2)]['Address']=(result.group(3))
+        if (result.group(1) == 'I8'):
+            waveforms[result.group(2)]['Type']=('I08')
+        else :
+            if (result.group(1) == 'U8'):
+                waveforms[result.group(2)]['Type']=('U08')
+            else:
+                waveforms[result.group(2)]['Type']=(result.group(1).upper())
+        fpgavarCount += 1
+    else:
+        result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)Size_('+args.waveformkey+'[a-zA-Z0-9_]*) = ([0-9]+)', line)
+        if (result is not None):
+            waveforms[result.group(2)]['Size']=(result.group(3))
+            fpgavarCount += 1   
+          
+     
     
     # Extracting Settings                       
     result = re.search('_Signature\s*=\s*\"([A-F0-9]{32})\"', line)
@@ -248,7 +275,20 @@ if (args.useSM):
                         biaddr[val]=i
                         rtvarCount += 1     
                     else:
-                        print("Found {} in RT.list file, but could not classify it.".format(val))       
+                        result = re.search('(RT_(I08|U08|I16|U16|I32|U32|I64|U64|SGL|DBL)_WF[a-zA-Z0-9_]*)[\s*]([0-9]+)', val)
+                        if (result is not None):
+                            waveforms[result.group(1)]['Address']=(i)
+                            waveforms[result.group(1)]['Size']=(result.group(3))
+                            if (result.group(1) == 'I8'):
+                                waveforms[result.group(1)]['Type']=('I08')
+                            else :
+                                if (result.group(1) == 'U8'):
+                                    waveforms[result.group(1)]['Type']=('U08')
+                                else:
+                                    waveforms[result.group(1)]['Type']=(result.group(2).upper())
+                            rtvarCount += 1    
+                        else:                    
+                            print("Found {} in RT.list file, but could not classify it.".format(val))       
 
 
 print( "{} RT variables processed\n{} FPGA addresses extracted".format(rtvarCount, fpgavarCount))
@@ -267,6 +307,11 @@ with open("{}/cfg.ini".format(args.dst) , "w") as f:
     printToFile(f, 'SCALERS', scalerNamesDict)
     for scaler in scalers:
         printToFile(f, scaler, scalers[scaler])
+    waveformNameList = list(waveforms.keys())
+    waveformNamesDict = { waveformNameList[i] : '' for i in range(0, len(waveformNameList) ) }
+    printToFile(f, 'WAVEFORMS', waveformNamesDict)        
+    for waveform in waveforms:
+        printToFile(f, waveform, waveforms[waveform])
 
 
 
