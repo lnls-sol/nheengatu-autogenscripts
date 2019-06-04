@@ -1,6 +1,9 @@
-#!/usr/local/epics/apps/crio-ioc/bin/linux-x86_64/CRIO
+#!/home/ABTLUS/dawood.alnajjar/work/crio-ioc/bin/linux-x86_64/CRIO
+< /home/ABTLUS/dawood.alnajjar/work/crio-ioc/iocBoot/iocCRIO/envPaths
 
-< /usr/local/epics/apps/crio-ioc/iocBoot/iocCRIO/envPaths
+#!/usr/local/epics/apps/crio-ioc/bin/linux-x86_64/CRIO
+#< /usr/local/epics/apps/crio-ioc/iocBoot/iocCRIO/envPaths
+
 
 cd ${TOP}
 
@@ -14,14 +17,15 @@ crioSupSetup("/usr/local/epics/apps/config/crio-ioc/cfg.ini" , 1)
 
 cd ${TOP}/iocBoot/${IOC}
 
-dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/bi.template"
-dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/bo.template"
-dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/ai.template"
-dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/ao.template"
-dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/scaler.template"
-
-
+dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/bi.db.sub"
+dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/bo.db.sub"
+dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/ai.db.sub"
+dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/ao.db.sub"
+dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/scaler.db.sub"
+dbLoadTemplate "/usr/local/epics/apps/config/crio-ioc/waveform.db.sub"
 iocInit
 
 dbl
+
+
 
