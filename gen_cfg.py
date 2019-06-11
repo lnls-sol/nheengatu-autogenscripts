@@ -157,6 +157,9 @@ parser.add_argument("-u", "--useSM", help="Use shared memory", action='store_tru
 parser.add_argument("-d", "--dst", default="crio-ioc", help="Name of the output folder. Default is <crio-ioc>")
 parser.add_argument( "-p", "--path", help="Bitfile path. Default is </usr/local/epics/apps/config/crio-ioc/>", default = '/usr/local/epics/apps/config/crio-ioc/')
 parser.add_argument("-s", "--src", help="Folder containing all files necessary for ini/template generation", default = '.')
+parser.add_argument("-b", "--binum", help="The total number of BI variables. Default is <0>", default = '0')
+parser.add_argument("-r", "--rtnum", help="The total number of RT variables. Default is <0>", default = '0')
+parser.add_argument("--extract", help="Extract data from headerfile", action='store_true')
 parser.add_argument("--ip", help="Destination IP of the CRIO. Default is <127.0.0.1>", default = '127.0.0.1')
 parser.add_argument("--smfname", help="Shared memory file path and name", default = '/labview_linux_sm')
 parser.add_argument("--smsize", help="Shared memory size. Default is <4096>", default = '4096')
@@ -176,12 +179,38 @@ parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
 parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioWAVEFORM')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
-parser.add_argument("--binum", help="The total number of BI variables. Default is <0>", default = '0')
-parser.add_argument("--rtnum", help="The total number of RT variables. Default is <0>", default = '0')
+
 
 # read arguments from the command line
 args = parser.parse_args()
 
+biaddr = {}
+boaddr = {}
+aoaddr = {}
+aiaddr = {}
+bilist = []
+rtlist = []
+bidict = collections.OrderedDict()
+scalers = collections.defaultdict(dict)
+waveforms = collections.defaultdict(dict)
+fxps = collections.defaultdict(dict)
+rtvarCount = 0;
+fpgavarCount = 0;
+
+
+fxpFileFound = glob.glob("{0}/FXP.list".format(args.src));
+if (len(fxpFileFound) == 1): 
+    with open(fxpFileFound[0]) as f:
+        lines = f.readlines()
+        for i in lines:
+            i = i.strip()
+            lineSplit = i.split(',')
+            fxps[lineSplit[0]]['Sign'] = lineSplit[1]
+            fxps[lineSplit[0]]['Word Length'] = lineSplit[2]                             
+            fxps[lineSplit[0]]['Integer Word Length'] = lineSplit[3]             
+                
+
+        
 # search for header file
 headerFilesFound = glob.glob("{0}/*.h".format(args.src));
 if (len(headerFilesFound) > 1): 
@@ -199,18 +228,7 @@ settings = {'Destination Crio IP' : args.ip,
             'Use Shared Memory': 1 if(args.useSM) else 0,
             'Shared Memory Path': args.smfname,
             'Shared Memory Size': args.smsize}
-biaddr = {}
-boaddr = {}
-aoaddr = {}
-aiaddr = {}
-bilist = []
-rtlist = []
-bidict = collections.OrderedDict()
-scalers = collections.defaultdict(dict)
-waveforms = collections.defaultdict(dict)
-fxps = collections.defaultdict(dict)
-rtvarCount = 0;
-fpgavarCount = 0;
+
 
 if os.path.exists(args.dst):
     os.system("rm -rf {0}".format(args.dst)) 
@@ -218,6 +236,7 @@ if os.path.exists(args.dst):
     
 os.makedirs(args.dst)
 
+                            
 for line in lines:
 
     # Extracting scaler data
@@ -331,17 +350,11 @@ for line in lines:
                             result = re.search('IndicatorU64_('+args.aikey+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
                             if (result is not None):
                                 aiaddr["FXP_"+result.group(1)]=(result.group(3))
-                                fxps["FXP_"+result.group(1)]['Sign'] = "" 
-                                fxps["FXP_"+result.group(1)]['Word Length'] = "64"                                
-                                fxps["FXP_"+result.group(1)]['Integer Word Length'] = ""                                
                                 fpgavarCount += 1   
                             else:
                                 result = re.search('ControlU64_('+args.aokey+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
                                 if (result is not None):
                                     aoaddr["FXP_"+result.group(1)]=(result.group(3))
-                                    fxps["FXP_"+result.group(1)]['Sign'] = "" 
-                                    fxps["FXP_"+result.group(1)]['Word Length'] = "64"                                
-                                    fxps["FXP_"+result.group(1)]['Integer Word Length'] = ""                                
                                     fpgavarCount += 1                                                              
 
 
@@ -407,50 +420,58 @@ if (args.useSM):
 
 
 print( "{} RT variables processed\n{} FPGA addresses extracted".format(rtvarCount, fpgavarCount))
-with open("{}/cfg.ini".format(args.dst) , "w") as f:
-    print("Generating {}/cfg.ini".format(args.dst))
-    f.write(header.format(datetime.datetime.now()))
-    printToFile(f, 'Settings', settings)
-    printToFile(f, 'BIAddresses', biaddr)
-    printToFile(f, 'BI0', bidict)
-    printToFile(f, 'AO', aoaddr)
-    printToFile(f, 'AI', aiaddr)
-    for i in list(fxps.keys()):
-        printToFile(f, i, fxps[i])
-    printToFile(f, 'BO', boaddr)
-    # Convert scaler names to list then to dictionary for printing
-    scalerNameList = list(scalers.keys())
-    scalerNamesDict = { scalerNameList[i] : '' for i in range(0, len(scalerNameList) ) }
-    printToFile(f, 'SCALERS', scalerNamesDict)
-    for scaler in scalers:
-        printToFile(f, scaler, scalers[scaler])
-    waveformNameList = list(waveforms.keys())
-    waveformNamesDict = { waveformNameList[i] : '' for i in range(0, len(waveformNameList) ) }
-    printToFile(f, 'WAVEFORMS', waveformNamesDict)        
-    for waveform in waveforms:
-        printToFile(f, waveform, waveforms[waveform])
+
+if not (args.extract) : 
+    with open("{}/cfg.ini".format(args.dst) , "w") as f:
+        print("Generating {}/cfg.ini".format(args.dst))
+        f.write(header.format(datetime.datetime.now()))
+        printToFile(f, 'Settings', settings)
+        printToFile(f, 'BIAddresses', biaddr)
+        printToFile(f, 'BI0', bidict)
+        printToFile(f, 'AO', aoaddr)
+        printToFile(f, 'AI', aiaddr)
+        for i in list(fxps.keys()):
+            printToFile(f, i, fxps[i])
+        printToFile(f, 'BO', boaddr)
+        # Convert scaler names to list then to dictionary for printing
+        scalerNameList = list(scalers.keys())
+        scalerNamesDict = { scalerNameList[i] : '' for i in range(0, len(scalerNameList) ) }
+        printToFile(f, 'SCALERS', scalerNamesDict)
+        for scaler in scalers:
+            printToFile(f, scaler, scalers[scaler])
+        waveformNameList = list(waveforms.keys())
+        waveformNamesDict = { waveformNameList[i] : '' for i in range(0, len(waveformNameList) ) }
+        printToFile(f, 'WAVEFORMS', waveformNamesDict)        
+        for waveform in waveforms:
+            printToFile(f, waveform, waveforms[waveform])
 
 
 
 
+            
+
+    #template definitions
+    tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, DESC}}\n'
+    tplbdy = '{{\"{0}", \"'+args.crio+':9:{3}\", \"{1}\", \"{2}\", \"\"}}\n'
+    tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, FREQ, PIN, DESC}}\n'
+    tplsclrbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{3}\", \"\"}}\n'
+    tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
+    tplwfbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{4}\", \"{5}\", \"\"}}\n'
+
+    #Generate substitutions  
+    bidict_inverted = {v: k for k, v in bidict.items()} 
+    buildSub(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao', 2, dict())
+    buildSub(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', 2, dict())
+    buildSub(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', 2, dict())
+    buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', 2, dict())
+    buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', 0, dict(), args.freq )
+    buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', 1, waveforms)
+
+    print("Check {0} folder, and modify the substitution files.".format(args.dst))
+
+else:
+    # generate files here using the data extracted
+    with open("{}/FXP.list".format(args.src) , "w") as f:
+        for i in list(fxps.keys()):
+            f.write("{}\n".format(i))   
         
-
-#template definitions
-tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, DESC}}\n'
-tplbdy = '{{\"{0}", \"'+args.crio+':9:{3}\", \"{1}\", \"{2}\", \"\"}}\n'
-tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, FREQ, PIN, DESC}}\n'
-tplsclrbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{3}\", \"\"}}\n'
-tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
-tplwfbdy = '{{\"{0}", \"'+args.crio+':{3}\", \"{1}\", \"{2}\", \"{4}\", \"{5}\", \"\"}}\n'
-
-#Generate substitutions  
-bidict_inverted = {v: k for k, v in bidict.items()} 
-buildSub(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao', 2, dict())
-buildSub(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', 2, dict())
-buildSub(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', 2, dict())
-buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', 2, dict())
-buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', 0, dict(), args.freq )
-buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', 1, waveforms)
-
-print("Check {0} folder, and modify the substitution files.".format(args.dst))
-
