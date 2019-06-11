@@ -33,11 +33,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, db, fname, record, wf, freq 
             tpls = tpls + tplbdy.format(beamline, dtype, freq, key)
     else: # Waveform
         if (record == 1):
-            for key in pins.keys():
-                tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper(), wf[key]['TypeEPICS'], wf[key]['Size'])
+            for indx, key in enumerate(pins.keys()):
+                tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper()+str(indx), wf[key]['TypeEPICS'], wf[key]['Size'])
         else:
-            for key, val in pins.items():
-                tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper())
+            for indx, key in enumerate(pins.keys()):
+                tpls = tpls + tplbdy.format(beamline, dtype, key, fname.upper()+str(indx))
 
     tpls = tpls + "\n}"
     with open("{}/{}.db.sub".format(args.dst, fname) , "w") as f:
