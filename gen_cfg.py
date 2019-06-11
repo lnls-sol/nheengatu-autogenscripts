@@ -202,12 +202,17 @@ fxpFileFound = glob.glob("{0}/FXP.list".format(args.src));
 if (len(fxpFileFound) == 1): 
     with open(fxpFileFound[0]) as f:
         lines = f.readlines()
-        for i in lines:
-            i = i.strip()
-            lineSplit = i.split(',')
-            fxps[lineSplit[0]]['Sign'] = lineSplit[1]
-            fxps[lineSplit[0]]['Word Length'] = lineSplit[2]                             
-            fxps[lineSplit[0]]['Integer Word Length'] = lineSplit[3]             
+        for index, val in enumerate(lines):
+            val = val.strip()
+            lineSplit = val.split(',')
+            try: 
+                fxps[lineSplit[0]]['Sign'] = int(lineSplit[1])
+                fxps[lineSplit[0]]['Word Length'] = int(lineSplit[2])
+                fxps[lineSplit[0]]['Integer Word Length'] = int(lineSplit[3]) 
+            except ValueError:
+                print("Found string in FXP.list file line {0}, ignoring...".format(index))
+                continue
+            
                 
 
         
