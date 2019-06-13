@@ -178,6 +178,7 @@ parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
 parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioWAVEFORM')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
+parser.add_argument("--cfgcsv", help="csv file name. Default=cfg.csv", default = 'cfg.csv')
 
 
 # read arguments from the command line
@@ -203,8 +204,7 @@ rtvarCount = 0;
 fpgavarCount = 0;
 
 
-           
-                
+              
 
         
 # search for header file
@@ -229,7 +229,15 @@ if not (args.extract) :
     if os.path.exists(args.dst):
         os.system("rm -rf {0}".format(args.dst)) 
     os.makedirs(args.dst)
-
+    os.makedirs(args.dst+"/reference")
+    callCommand = " ".join(sys.argv)
+    with open(args.dst+"/reference/command.sh", "w") as f:
+        f.write("#!/bin/bash\n")  
+        f.write(callCommand)        
+    copyfile(args.src+"/"+args.cfgcsv, args.dst+"/reference/"+args.cfgcsv)
+    copyfile(headerFilesFound[0], args.dst+"/reference/reference.h")
+    if (args.useSM):
+        copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
                             
 for line in lines:
 
