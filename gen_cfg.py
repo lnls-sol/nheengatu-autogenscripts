@@ -199,7 +199,11 @@ csvbo = collections.defaultdict(dict)
 csvao = collections.defaultdict(dict)
 csvwf = collections.defaultdict(dict)
 csvslr = collections.defaultdict(dict)
-
+settings = {'Destination Crio IP' : args.ip,
+            'Path':args.path,
+            'Use Shared Memory': 1 if(args.useSM) else 0,
+            'Shared Memory Path': args.smfname,
+            'Shared Memory Size': args.smsize}
 rtvarCount = 0;
 fpgavarCount = 0;
 
@@ -218,13 +222,8 @@ with open(headerFilesFound[0]) as f:
     lines = f.readlines()
 
     
-# *.ini key dictionaries
-settings = {'Destination Crio IP' : args.ip,
-            'Path':args.path,
-            'Use Shared Memory': 1 if(args.useSM) else 0,
-            'Shared Memory Path': args.smfname,
-            'Shared Memory Size': args.smsize}
 
+# Prepare output folder
 if not (args.extract) : 
     if os.path.exists(args.dst):
         os.system("rm -rf {0}".format(args.dst)) 
@@ -238,7 +237,9 @@ if not (args.extract) :
     copyfile(headerFilesFound[0], args.dst+"/reference/reference.h")
     if (args.useSM):
         copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
-                            
+ 
+ 
+# extract data from header and RT.list whether extract is chosen or not.                           
 for line in lines:
 
     # Extracting scaler data
@@ -426,10 +427,11 @@ if (args.useSM):
 print( "{} RT variables processed\n{} FPGA addresses extracted".format(rtvarCount, fpgavarCount))
 
 
-               
+# All tasks when extraction is not chosen
 if not (args.extract) : 
-   
-    with open("{}/cfg.csv".format(args.src) , "r") as f:
+
+    # Generate *.csv file      
+    with open("{0}/{1}".format(args.src, args.cfgcsv) , "r") as f:
         lines = f.readlines()
         current = "None"
         for index, val in enumerate(lines):
@@ -531,9 +533,9 @@ if not (args.extract) :
                                     csvslr[lineSplit[0]]['DB NAME'] = lineSplit[1]
                                     csvslr[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
                                 else:
-                                    print("Could not classify data on line {0} in cfg.csv file".format(index))
+                                    print("Could not classify data on line {0} in *.csv file".format(index))
 
-
+    # generate cfg.ini
     with open("{}/cfg.ini".format(args.dst) , "w") as f:
         print("Generating {}/cfg.ini".format(args.dst))
         f.write(header.format(datetime.datetime.now()))
@@ -582,8 +584,8 @@ if not (args.extract) :
     print("Check {0} folder, and modify the substitution files.".format(args.dst))
 
 else:
-    # generate list file here using the data extracted
-    with open("{}/cfg.csv".format(args.src) , "w") as f:
+    # generate *.csv file here using the data extracted
+    with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
         f.write("AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
         for i in list(aiaddr.keys()):
             f.write("{},,,,,\n".format(i))   
