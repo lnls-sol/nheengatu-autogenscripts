@@ -10,26 +10,38 @@ FPGA C API generated header.
 ### Help
     $ ./gen_cfg.py -h
  
-### Running example
-    $ ./gen_cfg.py -s ./gen_cfg_example/ -u
+    
+### cfg.csv template generation example
+    
+    $ ./gen_cfg.py -s ./gen_cfg_example/ -u --waveformkey waveform_ --binum 24 --extract
+    
+    
+### cfg.ini and EPICS substitutions generation examples
+
+    $ ./gen_cfg.py -s ./gen_cfg_example/ -u --waveformkey waveform_ --binum 24
+
 
 
 ### Notes
     $ gen_cfg_example/
-    $ ├── BI.list
+    $ ├── NiFpga_fpga_all_example.lvbitx
     $ ├── NiFpga_fpga_all_example.h
+    $ ├── cfg.csv
     $ └── RT.list
  
  * NiFpga_fpga_all_example.h: Header file generated with FPGA C API
  * RT.list: If SM is enabled, this file must exist, and should contain the order of the variables in the labview RT VI
- * (BI).list: If exists a BI (BI) in the *.h file, a file with its name will be searched for. This file contains the bit <-> name mappings
+ * NiFpga_fpga_all_example.lvbitx: bit stream. It will only be copied by the script to the destination folder
+ * cfg.csv : example of an already filled cfg.csv file. The script generates a template that will be filled by the user
 
 #### RT variable naming in RT.list file
 Must abide by the following syntax RT_VARTYPE_VARNAMEX. VARNAME must be one of the following
- * AI, AO, BI, BO
+ * AI, AO, BI, BO, WF
 
 X can be a unique number assigned by the user. The VARTYPE has to be one of the following
  * BOL, DBL, SGL, I64, I32, I16, I08, U64, U32, U16, U08
+
+In case of waveforms (WF), the variable name must be followed by the array number of elements
 
 ## crio-ioc.cmd
 
