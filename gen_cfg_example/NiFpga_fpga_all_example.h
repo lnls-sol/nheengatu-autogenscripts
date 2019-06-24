@@ -24,7 +24,7 @@
 /**
  * The signature of the FPGA bitfile.
  */
-static const char* const NiFpga_fpga_all_example_Signature = "809D35369A7293F0FD95F203319A923D";
+static const char* const NiFpga_fpga_all_example_Signature = "D592E10E5DEF526008292F31DA25299A";
 
 typedef enum
 {
@@ -188,7 +188,7 @@ typedef enum
 
 typedef enum
 {
-   NiFpga_fpga_all_example_IndicatorArrayI64Size_waveform_i642 = 3,
+   NiFpga_fpga_all_example_IndicatorArrayI64Size_waveform_i642 = 70,
 } NiFpga_fpga_all_example_IndicatorArrayI64Size;
 
 typedef enum
@@ -296,7 +296,7 @@ typedef enum
 
 typedef enum
 {
-   NiFpga_fpga_all_example_ControlArrayI64Size_waveform_i64 = 3,
+   NiFpga_fpga_all_example_ControlArrayI64Size_waveform_i64 = 70,
 } NiFpga_fpga_all_example_ControlArrayI64Size;
 
 typedef enum
