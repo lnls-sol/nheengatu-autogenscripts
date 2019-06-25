@@ -18,21 +18,26 @@ import glob
 import datetime
 
 ### HELPER FUNCTIONS
-def printToFile(file, key, items):
+def printToCFGFile(f, key, items):
     f.write("[{}]\n".format(key))
     for key,value in items.items():
-        if (key != 'TypeEPICS'):
-            f.write("{}={}\n".format(key,value))   
+        f.write("{}={}\n".format(key,value))   
     f.write("\n\n")     
 
 
-def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, record, csv):
+def printToReqFile(f, keys, csv, bl, eq):
+    for key,value in keys.items():
+        if (csv[key]['AUTOSAVE'] == 1):
+            f.write("{0}:{1}:{2}\n".format(bl, eq, csv[key]['DB NAME']))   
+
+
+def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
     tpls = tplhdr.format(dbtemplate)
-    if(record == 0): #SCALER
+    if(fname == "scaler"): #SCALER
         for key in pins.keys():
             tpls = tpls + tplbdy.format(beamline, csv[key]['DB NAME'], dtype, key, csv[key]['DESCRIPTION'])
     else: # Waveform
-        if (record == 1):
+        if (fname == "waveform"):
             for indx, key in enumerate(pins.keys()):
                 tpls = tpls + tplbdy.format(beamline, csv[key]['DB NAME'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESCRIPTION'])
         else:
@@ -436,7 +441,7 @@ if not (args.extract) :
         current = "None"
         for index, val in enumerate(lines):
             val = val.strip()
-            if (val == ",,,,,"):
+            if (val == ",,,,,,"):
                 print('Found empty line {0} in csv file. Ignoring'.format(index+1))
                 continue
             lineSplit = val.split(',')
@@ -490,10 +495,11 @@ if not (args.extract) :
                         
             else: 
                 if (current == 'AO'):
-                    #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP)
-                    #    0            1          2              3               4                   5
+                    #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE
+                    #    0            1          2              3               4                   5                 6
                     csvao[lineSplit[0]]['DB NAME'] = lineSplit[1]
                     csvao[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
+                    csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
                     result = re.search('FXP_', lineSplit[0])
                     if (result is not None): 
                         try:                   
@@ -515,10 +521,11 @@ if not (args.extract) :
                         csvbi[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
                     else: 
                         if (current == 'BO'):
-                            #BO INI NAME,BO DB NAME,BO DESCRIPTION
-                            #    0            1          2             
+                            #BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE
+                            #    0            1          2             3
                             csvbo[lineSplit[0]]['DB NAME'] = lineSplit[1]
-                            csvbo[lineSplit[0]]['DESCRIPTION']    = lineSplit[2]        
+                            csvbo[lineSplit[0]]['DESCRIPTION']    = lineSplit[2]   
+                            csvbo[lineSplit[0]]['AUTOSAVE']       = lineSplit[3]       
                         else: 
                             if (current == 'WAVEFORM'):
                                 #WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE
@@ -539,26 +546,31 @@ if not (args.extract) :
     with open("{}/cfg.ini".format(args.dst) , "w") as f:
         print("Generating {}/cfg.ini".format(args.dst))
         f.write(header.format(datetime.datetime.now()))
-        printToFile(f, 'Settings', settings)
-        printToFile(f, 'BIAddresses', biaddr)
-        printToFile(f, 'BI0', bidict)
-        printToFile(f, 'AO', aoaddr)
-        printToFile(f, 'AI', aiaddr)
-        printToFile(f, 'BO', boaddr)
+        printToCFGFile(f, 'Settings', settings)
+        printToCFGFile(f, 'BIAddresses', biaddr)
+        printToCFGFile(f, 'BI0', bidict)
+        printToCFGFile(f, 'AO', aoaddr)
+        printToCFGFile(f, 'AI', aiaddr)
+        printToCFGFile(f, 'BO', boaddr)
         # Convert scaler names to list then to dictionary for printing
         scalerNameList = list(scalers.keys())
         scalerNamesDict = { scalerNameList[i] : '' for i in range(0, len(scalerNameList) ) }
-        printToFile(f, 'SCALERS', scalerNamesDict)
+        printToCFGFile(f, 'SCALERS', scalerNamesDict)
         for scaler in scalers:
-            printToFile(f, scaler, scalers[scaler])
+            printToCFGFile(f, scaler, scalers[scaler])
         for fxp in fxps:
-            printToFile(f, fxp, fxps[fxp])            
+            printToCFGFile(f, fxp, fxps[fxp])            
         waveformNameList = list(waveforms.keys())
         waveformNamesDict = { waveformNameList[i] : '' for i in range(0, len(waveformNameList) ) }
-        printToFile(f, 'WAVEFORMS', waveformNamesDict)        
+        printToCFGFile(f, 'WAVEFORMS', waveformNamesDict)        
         for waveform in waveforms:
-            printToFile(f, waveform, waveforms[waveform])                                                             
+            printToCFGFile(f, waveform, waveforms[waveform])                                                             
 
+    # generate req file
+    with open("{}/crioioc.req".format(args.dst) , "w") as f:
+        print("Generating {}/crioioc.req".format(args.dst))
+        printToReqFile(f, boaddr, csvbo, args.beamline, args.crio)
+        printToReqFile(f, aoaddr, csvao, args.beamline, args.crio)
 
 
              
@@ -574,12 +586,12 @@ if not (args.extract) :
     #Generate substitutions  
     bidict_inverted = {v: k for k, v in bidict.items()} 
     bidict_inverted = {**biaddr, **bidict_inverted}
-    buildSub(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao', 2, csvao)
-    buildSub(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', 2, csvai)
-    buildSub(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', 2, csvbi)
-    buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', 2, csvbo)
-    buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', 0, csvslr)
-    buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', 1, csvwf)
+    buildSub(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao',  csvao)
+    buildSub(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', csvai)
+    buildSub(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', csvbi)
+    buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', csvbo)
+    buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', csvslr)
+    buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', csvwf)
 
     print("Check {0} folder, and modify the substitution files.".format(args.dst))
 
@@ -588,8 +600,8 @@ else:
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
         f.write("AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
         for i in list(aiaddr.keys()):
-            f.write("{},,,,,\n".format(i))   
-        f.write(",,,,,\n,,,,,\n")  
+            f.write("{},,,,,,\n".format(i))   
+        f.write(",,,,,,\n,,,,,,\n")  
         
         
         f.write("BI INI NAME,BI DB NAME,BI DESCRIPTION\n") 
@@ -598,25 +610,25 @@ else:
                 f.write("{},,\n".format(i)) 
         for i in bidict.values():
             f.write("{},,\n".format(i))             
-        f.write(",,,,,\n,,,,,\n")       
+        f.write(",,,,,,\n,,,,,,\n")       
                  
-        f.write("BO INI NAME,BO DB NAME,BO DESCRIPTION\n") 
+        f.write("BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE\n") 
         for i in list(boaddr.keys()):
-            f.write("{},,\n".format(i)) 
-        f.write(",,,,,\n,,,,,\n")   
+            f.write("{},,,0,,,\n".format(i)) 
+        f.write(",,,,,,\n,,,,,,\n")   
 
-        f.write("AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP)\n") 
+        f.write("AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE\n") 
         for i in list(aoaddr.keys()):
-            f.write("{},,,,,\n".format(i)) 
-        f.write(",,,,,\n,,,,,\n")     
+            f.write("{},,,,,,0\n".format(i)) 
+        f.write(",,,,,,\n,,,,,,\n")     
 
         f.write("SCALER INI NAME,SCALER DB NAME,SCALER DESCRIPTION\n") 
         for i in list(scalers.keys()):
             f.write("{},,\n".format(i)) 
-        f.write(",,,,,\n,,,,,\n")   
+        f.write(",,,,,,\n,,,,,,\n")   
 
         f.write("WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE\n") 
         for i in list(waveforms.keys()):
             f.write("{0},,,{1}\n".format(i, waveforms[i]['Size'])) 
-        f.write(",,,,,\n,,,,,\n")                                          
+        f.write(",,,,,,\n,,,,,,\n")                                          
         
