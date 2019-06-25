@@ -30,6 +30,11 @@ def printToReqFile(f, keys, csv, bl, eq):
         if (csv[key]['AUTOSAVE'] == 1):
             f.write("{0}:{1}:{2}\n".format(bl, eq, csv[key]['DB NAME']))   
 
+def printToInitFile(f, keys, csv, bl, eq):
+    for key,value in keys.items():
+        if (csv[key]['INITIALIZE'] == 1):
+            f.write("dbpf {0}:{1}:{2} {3}\n".format(bl, eq, csv[key]['DB NAME'], csv[key]['INIT VAL']))   
+            
 
 def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
     tpls = tplhdr.format(dbtemplate)
@@ -441,7 +446,7 @@ if not (args.extract) :
         current = "None"
         for index, val in enumerate(lines):
             val = val.strip()
-            if (val == ",,,,,,"):
+            if (val == ",,,,,,,,"):
                 print('Found empty line {0} in csv file. Ignoring'.format(index+1))
                 continue
             lineSplit = val.split(',')
@@ -495,11 +500,13 @@ if not (args.extract) :
                         
             else: 
                 if (current == 'AO'):
-                    #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE
-                    #    0            1          2              3               4                   5                 6
+                    #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL
+                    #    0            1          2              3               4                   5                 6           7          8
                     csvao[lineSplit[0]]['DB NAME'] = lineSplit[1]
                     csvao[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
                     csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
+                    csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
+                    csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
                     result = re.search('FXP_', lineSplit[0])
                     if (result is not None): 
                         try:                   
@@ -525,7 +532,9 @@ if not (args.extract) :
                             #    0            1          2             3
                             csvbo[lineSplit[0]]['DB NAME'] = lineSplit[1]
                             csvbo[lineSplit[0]]['DESCRIPTION']    = lineSplit[2]   
-                            csvbo[lineSplit[0]]['AUTOSAVE']       = lineSplit[3]       
+                            csvbo[lineSplit[0]]['AUTOSAVE']       = int(lineSplit[3])
+                            csvbo[lineSplit[0]]['INITIALIZE'] = int(lineSplit[4]) 
+                            csvbo[lineSplit[0]]['INIT VAL'] = int(lineSplit[5])                             
                         else: 
                             if (current == 'WAVEFORM'):
                                 #WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE
@@ -573,6 +582,11 @@ if not (args.extract) :
         printToReqFile(f, aoaddr, csvao, args.beamline, args.crio)
 
 
+    # generate init-pv.cmd file
+    with open("{}/init-pv.cmd".format(args.dst) , "w") as f:
+        print("Generating {}/init-pv.cmd".format(args.dst))
+        printToInitFile(f, boaddr, csvbo, args.beamline, args.crio)
+        printToInitFile(f, aoaddr, csvao, args.beamline, args.crio)
              
 
     #template definitions
@@ -600,8 +614,8 @@ else:
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
         f.write("AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
         for i in list(aiaddr.keys()):
-            f.write("{},,,,,,\n".format(i))   
-        f.write(",,,,,,\n,,,,,,\n")  
+            f.write("{},,,,,,,,\n".format(i))   
+        f.write(",,,,,,,,\n,,,,,,,,\n")  
         
         
         f.write("BI INI NAME,BI DB NAME,BI DESCRIPTION\n") 
@@ -609,26 +623,26 @@ else:
             if (i != "BI0"):
                 f.write("{},,\n".format(i)) 
         for i in bidict.values():
-            f.write("{},,\n".format(i))             
-        f.write(",,,,,,\n,,,,,,\n")       
+            f.write("{},,,,,,,,\n".format(i))             
+        f.write(",,,,,,,,\n,,,,,,,,\n")       
                  
-        f.write("BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE\n") 
+        f.write("BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE, INITIALIZE, INIT VAL\n") 
         for i in list(boaddr.keys()):
-            f.write("{},,,0,,,\n".format(i)) 
-        f.write(",,,,,,\n,,,,,,\n")   
+            f.write("{},,,0,0,0,\n".format(i)) 
+        f.write(",,,,,,,,\n,,,,,,,,\n")   
 
-        f.write("AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE\n") 
+        f.write("AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL\n") 
         for i in list(aoaddr.keys()):
-            f.write("{},,,,,,0\n".format(i)) 
-        f.write(",,,,,,\n,,,,,,\n")     
+            f.write("{},,,,,,0,0,0\n".format(i)) 
+        f.write(",,,,,,,,\n,,,,,,,,\n")     
 
         f.write("SCALER INI NAME,SCALER DB NAME,SCALER DESCRIPTION\n") 
         for i in list(scalers.keys()):
-            f.write("{},,\n".format(i)) 
-        f.write(",,,,,,\n,,,,,,\n")   
+            f.write("{},,,,,,,,\n".format(i)) 
+        f.write(",,,,,,,,\n,,,,,,,,\n")   
 
         f.write("WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE\n") 
         for i in list(waveforms.keys()):
             f.write("{0},,,{1}\n".format(i, waveforms[i]['Size'])) 
-        f.write(",,,,,,\n,,,,,,\n")                                          
+        f.write(",,,,,,,,\n,,,,,,,,\n")                                          
         
