@@ -798,7 +798,7 @@ if not (args.extract) :
     with open("{}/init-recsync.cmd".format(args.dst) , "w") as f:
         print("Generating {}/init-pv.cmd".format(args.dst))
         f.write("epicsEnvSet(\"IOCNAME\", \"CRIO-"+args.beamline+"\")\n")           
-        f.write('dbLoadDatabase \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.crio+":REC:\"")  
+        f.write('dbLoadDatabase \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.crio+":REC:\"\n")  
 
     #template definitions
     tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, DESC}}\n'
