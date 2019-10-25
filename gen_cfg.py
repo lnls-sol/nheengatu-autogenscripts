@@ -793,7 +793,12 @@ if not (args.extract) :
         printToInitFile(f, boaddr, csvbo, args.beamline, args.crio)
         printToInitFile(f, aoaddr, csvao, args.beamline, args.crio)
         printToInitFile(f, mbboaddr, csvmbbo, args.beamline, args.crio)
-             
+
+    # generate init-recsync.cmd file
+    with open("{}/init-recsync.cmd".format(args.dst) , "w") as f:
+        print("Generating {}/init-pv.cmd".format(args.dst))
+        f.write("epicsEnvSet(\"IOCNAME\", \"CRIO-"+args.beamline+"\")\n")           
+        f.write('dbLoadDatabase \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.crio+":REC:\"")  
 
     #template definitions
     tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, DESC}}\n'
