@@ -28,28 +28,74 @@ def printToCFGFile(f, key, items):
 def printToReqFile(f, keys, csv, bl, eq):
     for key,value in keys.items():
         if (csv[key]['AUTOSAVE'] == 1):
-            f.write("{0}:{1}:{2}\n".format(bl, eq, csv[key]['DB NAME']))   
+            f.write("{0}:{1}:{2}\n".format(bl, eq, csv[key]['EQ']))   
 
 def printToInitFile(f, keys, csv, bl, eq):
     for key,value in keys.items():
         if (csv[key]['INITIALIZE'] == 1):
-            f.write("dbpf {0}:{1}:{2} {3}\n".format(bl, eq, csv[key]['DB NAME'], csv[key]['INIT VAL']))   
+            f.write("dbpf {0}:{1}:{2} {3}\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL']))   
             
 
 def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
     tpls = tplhdr.format(dbtemplate)
     if(fname == "scaler"): #SCALER
         for key in pins.keys():
-            tpls = tpls + tplbdy.format(beamline, csv[key]['DB NAME'], dtype, key, csv[key]['DESCRIPTION'])
+            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
     else: # Waveform
         if (fname == "waveform"):
             for indx, key in enumerate(pins.keys()):
-                tpls = tpls + tplbdy.format(beamline, csv[key]['DB NAME'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESCRIPTION'])
-        else:
-            for indx, key in enumerate(pins.keys()):
-                if (key == 'BI0'):
-                    continue
-                tpls = tpls + tplbdy.format(beamline, csv[key]['DB NAME'], dtype, key, csv[key]['DESCRIPTION'])
+                tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
+        else: # MBBI
+            if (fname == "mbbi"):
+                for indx, key in enumerate(pins.keys()):
+                    tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                                                key             , dtype           , csv[key]['SCAN'], \
+                                                csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
+                                                csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
+                                                csv[key]['TWST'], csv[key]['TWVL'], csv[key]['TWSV'], \
+                                                csv[key]['THST'], csv[key]['THVL'], csv[key]['THSV'], \
+                                                csv[key]['FRST'], csv[key]['FRVL'], csv[key]['FRSV'], \
+                                                csv[key]['FVST'], csv[key]['FVVL'], csv[key]['FVSV'], \
+                                                csv[key]['SXST'], csv[key]['SXVL'], csv[key]['SXSV'], \
+                                                csv[key]['SVST'], csv[key]['SVVL'], csv[key]['SVSV'], \
+                                                csv[key]['EIST'], csv[key]['EIVL'], csv[key]['EISV'], \
+                                                csv[key]['NIST'], csv[key]['NIVL'], csv[key]['NISV'], \
+                                                csv[key]['TEST'], csv[key]['TEVL'], csv[key]['TESV'], \
+                                                csv[key]['ELST'], csv[key]['ELVL'], csv[key]['ELSV'], \
+                                                csv[key]['TVST'], csv[key]['TVVL'], csv[key]['TVSV'], \
+                                                csv[key]['TTST'], csv[key]['TTVL'], csv[key]['TTSV'], \
+                                                csv[key]['FTST'], csv[key]['FTVL'], csv[key]['FTSV'], \
+                                                csv[key]['FFST'], csv[key]['FFVL'], csv[key]['FFSV'], \
+                                                csv[key]['COSV'], csv[key]['UNSV'] )
+            else: # MBBO
+                if (fname == "mbbo"):
+                    for indx, key in enumerate(pins.keys()):
+                        tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                                                    key             , dtype           , \
+                                                    csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
+                                                    csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
+                                                    csv[key]['TWST'], csv[key]['TWVL'], csv[key]['TWSV'], \
+                                                    csv[key]['THST'], csv[key]['THVL'], csv[key]['THSV'], \
+                                                    csv[key]['FRST'], csv[key]['FRVL'], csv[key]['FRSV'], \
+                                                    csv[key]['FVST'], csv[key]['FVVL'], csv[key]['FVSV'], \
+                                                    csv[key]['SXST'], csv[key]['SXVL'], csv[key]['SXSV'], \
+                                                    csv[key]['SVST'], csv[key]['SVVL'], csv[key]['SVSV'], \
+                                                    csv[key]['EIST'], csv[key]['EIVL'], csv[key]['EISV'], \
+                                                    csv[key]['NIST'], csv[key]['NIVL'], csv[key]['NISV'], \
+                                                    csv[key]['TEST'], csv[key]['TEVL'], csv[key]['TESV'], \
+                                                    csv[key]['ELST'], csv[key]['ELVL'], csv[key]['ELSV'], \
+                                                    csv[key]['TVST'], csv[key]['TVVL'], csv[key]['TVSV'], \
+                                                    csv[key]['TTST'], csv[key]['TTVL'], csv[key]['TTSV'], \
+                                                    csv[key]['FTST'], csv[key]['FTVL'], csv[key]['FTSV'], \
+                                                    csv[key]['FFST'], csv[key]['FFVL'], csv[key]['FFSV'], \
+                                                    csv[key]['IVOA'], csv[key]['IVOV'], \
+                                                    csv[key]['COSV'], csv[key]['UNSV'] )
+                else:                    
+                    for indx, key in enumerate(pins.keys()):
+                        if (key == 'BI0'):
+                            continue
+                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+            
 
     tpls = tpls + "\n}"
     with open("{}/{}.db.sub".format(args.dst, fname) , "w") as f:
@@ -177,6 +223,8 @@ parser.add_argument("--aikey", help="AI keyword that any AI variable will start 
 parser.add_argument("--aokey", help="AO keyword that any AO variable will start with in the headerfile Default is <ao>", default = 'ao')
 parser.add_argument("--bokey", help="BO keyword that any BO variable will start with in the headerfile. Default is <bo>", default = 'bo')
 parser.add_argument("--bikey", help="BI keyword that any BI variable will start with in the headerfile. Default is <BI>", default = 'BI')
+parser.add_argument("--mbbikey", help="mbbi keyword that any mbbi variable will start with in the headerfile. Default is <mbbi>", default = 'mbbi')
+parser.add_argument("--mbbokey", help="mbbo keyword that any mbbo variable will start with in the headerfile. Default is <mbbo>", default = 'mbbo')
 parser.add_argument("--fxpkey", help="Fixedpoint keyword that any AI/AO variable will have after that AI/AO keyword in the headerfile. Default is <fxp>", default = 'fxp')
 parser.add_argument("--scalerkey", help="Scaler keyword that any Scaler variable will be followed with in the headerfile. Default is <SCALER>", default = 'SCALER')
 parser.add_argument("--waveformkey",help="Waveform keyword that any Waveform variable will be followed with in the headerfile. Default is <WF>", default = 'WF')
@@ -185,6 +233,8 @@ parser.add_argument("--bidtyp", help="DTYPE of BI record", default = 'CrioBI')
 parser.add_argument("--aidtyp", help="DTYPE of AI record", default = 'CrioAI')
 parser.add_argument("--bodtyp", help="DTYPE of BO record", default = 'CrioBO')
 parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
+parser.add_argument("--mbbodtyp", help="DTYPE of MBBO record", default = 'CrioMBBO')
+parser.add_argument("--mbbidtyp", help="DTYPE of MBBI record", default = 'CrioMBBI')
 parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioWAVEFORM')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
@@ -197,6 +247,8 @@ args = parser.parse_args()
 biaddr = {}
 boaddr = {}
 aoaddr = {}
+mbbiaddr = {}
+mbboaddr = {}
 aiaddr = {}
 rtlist = []
 bidict = collections.OrderedDict()
@@ -207,6 +259,8 @@ csvai = collections.defaultdict(dict)
 csvbi = collections.defaultdict(dict)
 csvbo = collections.defaultdict(dict)
 csvao = collections.defaultdict(dict)
+csvmbbi = collections.defaultdict(dict)
+csvmbbo = collections.defaultdict(dict)
 csvwf = collections.defaultdict(dict)
 csvslr = collections.defaultdict(dict)
 settings = {'Destination Crio IP' : args.ip,
@@ -370,68 +424,87 @@ for line in lines:
                                 result = re.search('ControlU64_('+args.aokey+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
                                 if (result is not None):
                                     aoaddr["FXP_"+result.group(1)]=(result.group(3))
-                                    fpgavarCount += 1                                                              
-
+                                    fpgavarCount += 1              
+                                else:
+                                    result = re.search('IndicatorU16_('+args.mbbikey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                                    if (result is not None):
+                                        mbbiaddr[result.group(1)]=(result.group(3))
+                                        fpgavarCount += 1   
+                                    else:
+                                        result = re.search('ControlU16_('+args.mbbokey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                                        if (result is not None):
+                                            mbboaddr[result.group(1)]=(result.group(3))
+                                            fpgavarCount += 1                                         
 
 #process RT variables if enabled
 
 if (args.useSM):
     rtlist = [rt.rstrip() for rt in open('{}/RT.list'.format(args.src))]
     for i, val in enumerate(rtlist):
-        result = re.search('RT_[A-Z0-9]{3}_AO', val)
+        result = re.search('RT_MBI', val)
         if (result is not None):
-            aoaddr[val]=i 
+            mbbiaddr[val]=i 
             rtvarCount += 1
         else: 
-            result = re.search('RT_BOL_BO', val)
+            result = re.search('RT_MBO', val)
             if (result is not None):
-                boaddr[val]=i
-                rtvarCount += 1   
-            else:         
-                result = re.search('RT_[A-Z0-9]{3}_AI', val)
+                mbboaddr[val]=i 
+                rtvarCount += 1
+            else:     
+                result = re.search('RT_[A-Z0-9]{3}_AO', val)
                 if (result is not None):
-                    aiaddr[val]=i
-                    rtvarCount += 1 
-                else:           
-                    result = re.search('RT_BOL_BI', val)
+                    aoaddr[val]=i 
+                    rtvarCount += 1
+                else: 
+                    result = re.search('RT_BOL_BO', val)
                     if (result is not None):
-                        biaddr[val]=i
-                        rtvarCount += 1     
-                    else:
-                        result = re.search('(RT_(I08|U08|I16|U16|I32|U32|I64|U64|SGL|DBL|BOL)_WF[a-zA-Z0-9_]*)[\s*]([0-9]+)', val)
+                        boaddr[val]=i
+                        rtvarCount += 1   
+                    else:         
+                        result = re.search('RT_[A-Z0-9]{3}_AI', val)
                         if (result is not None):
-                            waveforms[result.group(1)]['Address']=i
-                            waveforms[result.group(1)]['Size']=result.group(3)
-                            waveforms[result.group(1)]['Type']=result.group(2).upper()
-                            
-                            if (result.group(2) == 'I08'):
-                                csvwf[result.group(1)]['TypeEPICS']='CHAR'
-                            else :
-                                if (result.group(2) == 'U08'):
-                                    csvwf[result.group(1)]['TypeEPICS']='UCHAR'
-                                else:
-                                    if (result.group(2) == 'U16'):
-                                        csvwf[result.group(1)]['TypeEPICS']='USHORT'
-                                    else:
-                                        if (result.group(2) == 'I16'):
-                                            csvwf[result.group(1)]['TypeEPICS']='SHORT' 
+                            aiaddr[val]=i
+                            rtvarCount += 1 
+                        else:           
+                            result = re.search('RT_BOL_BI', val)
+                            if (result is not None):
+                                biaddr[val]=i
+                                rtvarCount += 1     
+                            else:
+                                result = re.search('(RT_(I08|U08|I16|U16|I32|U32|I64|U64|SGL|DBL|BOL)_WF[a-zA-Z0-9_]*)[\s*]([0-9]+)', val)
+                                if (result is not None):
+                                    waveforms[result.group(1)]['Address']=i
+                                    waveforms[result.group(1)]['Size']=result.group(3)
+                                    waveforms[result.group(1)]['Type']=result.group(2).upper()
+                                    
+                                    if (result.group(2) == 'I08'):
+                                        csvwf[result.group(1)]['TypeEPICS']='CHAR'
+                                    else :
+                                        if (result.group(2) == 'U08'):
+                                            csvwf[result.group(1)]['TypeEPICS']='UCHAR'
                                         else:
-                                            if (result.group(2) == 'I32'):
-                                                csvwf[result.group(1)]['TypeEPICS']='LONG'
+                                            if (result.group(2) == 'U16'):
+                                                csvwf[result.group(1)]['TypeEPICS']='USHORT'
                                             else:
-                                                if (result.group(2) == 'U32'):
-                                                    csvwf[result.group(1)]['TypeEPICS'] = 'ULONG'
+                                                if (result.group(2) == 'I16'):
+                                                    csvwf[result.group(1)]['TypeEPICS']='SHORT' 
                                                 else:
-                                                    if (result.group(2) == 'SGL'):
-                                                        csvwf[result.group(1)]['TypeEPICS'] = 'FLOAT'     
-                                                    else : 
-                                                        if (result.group(2) == 'BOL'):
-                                                            csvwf[result.group(1)]['TypeEPICS']='CHAR'                                                     
+                                                    if (result.group(2) == 'I32'):
+                                                        csvwf[result.group(1)]['TypeEPICS']='LONG'
+                                                    else:
+                                                        if (result.group(2) == 'U32'):
+                                                            csvwf[result.group(1)]['TypeEPICS'] = 'ULONG'
                                                         else:
-                                                            csvwf[result.group(1)]['TypeEPICS'] = 'DOUBLE'                                                  
-                            rtvarCount += 1    
-                        else:                    
-                            print("Found {} in RT.list file, but could not classify it.".format(val))       
+                                                            if (result.group(2) == 'SGL'):
+                                                                csvwf[result.group(1)]['TypeEPICS'] = 'FLOAT'     
+                                                            else : 
+                                                                if (result.group(2) == 'BOL'):
+                                                                    csvwf[result.group(1)]['TypeEPICS']='CHAR'                                                     
+                                                                else:
+                                                                    csvwf[result.group(1)]['TypeEPICS'] = 'DOUBLE'                                                  
+                                    rtvarCount += 1    
+                                else:                    
+                                    print("Found {} in RT.list file, but could not classify it.".format(val))       
 
 
 print( "{} RT variables processed\n{} FPGA addresses extracted".format(rtvarCount, fpgavarCount))
@@ -446,44 +519,56 @@ if not (args.extract) :
         current = "None"
         for index, val in enumerate(lines):
             val = val.strip()
-            if (val == ",,,,,,,,"):
+            removedComma = val.replace(",", "")
+            removedComma = removedComma.replace(" ", "")
+            if (not removedComma):
                 print('Found empty line {0} in csv file. Ignoring'.format(index+1))
                 continue
             lineSplit = val.split(',')
-            result = re.search('AI INI NAME', lineSplit[0])
+            result = re.search('^AI INI NAME', lineSplit[0])
             if (result is not None):
                 current = "AI"
                 continue
             else :
-                result = re.search('BI INI NAME', lineSplit[0])
+                result = re.search('^BI INI NAME', lineSplit[0])
                 if (result is not None):
                     current = "BI"
                     continue
                 else :
-                    result = re.search('BO INI NAME', lineSplit[0])
+                    result = re.search('^BO INI NAME', lineSplit[0])
                     if (result is not None):
                         current = "BO"
                         continue
                     else :    
-                        result = re.search('AO INI NAME', lineSplit[0])
+                        result = re.search('^AO INI NAME', lineSplit[0])
                         if (result is not None):
                             current = "AO"
                             continue
                         else :
-                            result = re.search('SCALER INI NAME', lineSplit[0])
+                            result = re.search('^SCALER INI NAME', lineSplit[0])
                             if (result is not None):
                                 current = "SCALER"
                                 continue
                             else :               
-                                result = re.search('WAVEFORM INI NAME', lineSplit[0])
+                                result = re.search('^WAVEFORM INI NAME', lineSplit[0])
                                 if (result is not None):
                                     current = "WAVEFORM"
                                     continue
+                                else :               
+                                    result = re.search('^MBBI INI NAME', lineSplit[0])
+                                    if (result is not None):
+                                        current = "MBBI"
+                                        continue 
+                                    else :               
+                                        result = re.search('^MBBO INI NAME', lineSplit[0])
+                                        if (result is not None):
+                                            current = "MBBO"
+                                            continue                                                                           
             if (current == 'AI'):
                 #AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)
                 #    0            1          2              3               4                   5
-                csvai[lineSplit[0]]['DB NAME'] = lineSplit[1]
-                csvai[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
+                csvai[lineSplit[0]]['EQ'] = lineSplit[1]
+                csvai[lineSplit[0]]['DESC'] = lineSplit[2]
                 result = re.search('FXP_', lineSplit[0])
                 if (result is not None):
                     try:
@@ -502,8 +587,8 @@ if not (args.extract) :
                 if (current == 'AO'):
                     #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL
                     #    0            1          2              3               4                   5                 6           7          8
-                    csvao[lineSplit[0]]['DB NAME'] = lineSplit[1]
-                    csvao[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
+                    csvao[lineSplit[0]]['EQ'] = lineSplit[1]
+                    csvao[lineSplit[0]]['DESC'] = lineSplit[2]
                     csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
                     csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
                     csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
@@ -524,32 +609,147 @@ if not (args.extract) :
                     if (current == 'BI'):
                         #BI INI NAME,BI DB NAME,BI DESCRIPTION
                         #    0            1          2             
-                        csvbi[lineSplit[0]]['DB NAME'] = lineSplit[1]
-                        csvbi[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
+                        csvbi[lineSplit[0]]['EQ'] = lineSplit[1]
+                        csvbi[lineSplit[0]]['DESC'] = lineSplit[2]
                     else: 
                         if (current == 'BO'):
                             #BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE
                             #    0            1          2             3
-                            csvbo[lineSplit[0]]['DB NAME'] = lineSplit[1]
-                            csvbo[lineSplit[0]]['DESCRIPTION']    = lineSplit[2]   
-                            csvbo[lineSplit[0]]['AUTOSAVE']       = int(lineSplit[3])
+                            csvbo[lineSplit[0]]['EQ'] = lineSplit[1]
+                            csvbo[lineSplit[0]]['DESC'] = lineSplit[2]   
+                            csvbo[lineSplit[0]]['AUTOSAVE']   = int(lineSplit[3])
                             csvbo[lineSplit[0]]['INITIALIZE'] = int(lineSplit[4]) 
                             csvbo[lineSplit[0]]['INIT VAL'] = int(lineSplit[5])                             
                         else: 
                             if (current == 'WAVEFORM'):
                                 #WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE
                                 #    0            1          2              3
-                                csvwf[lineSplit[0]]['DB NAME'] = lineSplit[1]
-                                csvwf[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
+                                csvwf[lineSplit[0]]['EQ'] = lineSplit[1]
+                                csvwf[lineSplit[0]]['DESC'] = lineSplit[2]
                                 csvwf[lineSplit[0]]['SIZE'] = int(lineSplit[3])
                             else: 
                                 if (current == 'SCALER'):
                                     #SCALER INI NAME,SCALER DB NAME,SCALER DESCRIPTION 
                                     #    0                   1              2            
-                                    csvslr[lineSplit[0]]['DB NAME'] = lineSplit[1]
-                                    csvslr[lineSplit[0]]['DESCRIPTION'] = lineSplit[2]
+                                    csvslr[lineSplit[0]]['EQ'] = lineSplit[1]
+                                    csvslr[lineSplit[0]]['DESC'] = lineSplit[2]
                                 else:
-                                    print("Could not classify data on line {0} in *.csv file".format(index))
+                                    if (current == 'MBBI'):
+                                        csvmbbi[lineSplit[0]]['EQ'] = lineSplit[1]
+                                        csvmbbi[lineSplit[0]]['DESC'] = lineSplit[2]
+                                        csvmbbi[lineSplit[0]]['ZRST'] = lineSplit[3]
+                                        csvmbbi[lineSplit[0]]['ZRVL'] = lineSplit[4]
+                                        csvmbbi[lineSplit[0]]['ZRSV'] = lineSplit[5]
+                                        csvmbbi[lineSplit[0]]['ONST'] = lineSplit[6]
+                                        csvmbbi[lineSplit[0]]['ONVL'] = lineSplit[7]
+                                        csvmbbi[lineSplit[0]]['ONSV'] = lineSplit[8]
+                                        csvmbbi[lineSplit[0]]['TWST'] = lineSplit[9]
+                                        csvmbbi[lineSplit[0]]['TWVL'] = lineSplit[10]
+                                        csvmbbi[lineSplit[0]]['TWSV'] = lineSplit[11]
+                                        csvmbbi[lineSplit[0]]['THST'] = lineSplit[12]
+                                        csvmbbi[lineSplit[0]]['THVL'] = lineSplit[13]
+                                        csvmbbi[lineSplit[0]]['THSV'] = lineSplit[14]
+                                        csvmbbi[lineSplit[0]]['FRST'] = lineSplit[15]
+                                        csvmbbi[lineSplit[0]]['FRVL'] = lineSplit[16]
+                                        csvmbbi[lineSplit[0]]['FRSV'] = lineSplit[17]
+                                        csvmbbi[lineSplit[0]]['FVST'] = lineSplit[18]
+                                        csvmbbi[lineSplit[0]]['FVVL'] = lineSplit[19]
+                                        csvmbbi[lineSplit[0]]['FVSV'] = lineSplit[20]
+                                        csvmbbi[lineSplit[0]]['SXST'] = lineSplit[21]
+                                        csvmbbi[lineSplit[0]]['SXVL'] = lineSplit[22]
+                                        csvmbbi[lineSplit[0]]['SXSV'] = lineSplit[23]
+                                        csvmbbi[lineSplit[0]]['SVST'] = lineSplit[24]
+                                        csvmbbi[lineSplit[0]]['SVVL'] = lineSplit[25]
+                                        csvmbbi[lineSplit[0]]['SVSV'] = lineSplit[26]
+                                        csvmbbi[lineSplit[0]]['EIST'] = lineSplit[27]
+                                        csvmbbi[lineSplit[0]]['EIVL'] = lineSplit[28]
+                                        csvmbbi[lineSplit[0]]['EISV'] = lineSplit[29]
+                                        csvmbbi[lineSplit[0]]['NIST'] = lineSplit[30]
+                                        csvmbbi[lineSplit[0]]['NIVL'] = lineSplit[31]
+                                        csvmbbi[lineSplit[0]]['NISV'] = lineSplit[32]
+                                        csvmbbi[lineSplit[0]]['TEST'] = lineSplit[33]
+                                        csvmbbi[lineSplit[0]]['TEVL'] = lineSplit[34]
+                                        csvmbbi[lineSplit[0]]['TESV'] = lineSplit[35]
+                                        csvmbbi[lineSplit[0]]['ELST'] = lineSplit[36]
+                                        csvmbbi[lineSplit[0]]['ELVL'] = lineSplit[37]
+                                        csvmbbi[lineSplit[0]]['ELSV'] = lineSplit[38]
+                                        csvmbbi[lineSplit[0]]['TVST'] = lineSplit[39]
+                                        csvmbbi[lineSplit[0]]['TVVL'] = lineSplit[40]
+                                        csvmbbi[lineSplit[0]]['TVSV'] = lineSplit[41]
+                                        csvmbbi[lineSplit[0]]['TTST'] = lineSplit[42]
+                                        csvmbbi[lineSplit[0]]['TTVL'] = lineSplit[43]
+                                        csvmbbi[lineSplit[0]]['TTSV'] = lineSplit[44]
+                                        csvmbbi[lineSplit[0]]['FTST'] = lineSplit[45]
+                                        csvmbbi[lineSplit[0]]['FTVL'] = lineSplit[46]
+                                        csvmbbi[lineSplit[0]]['FTSV'] = lineSplit[47]
+                                        csvmbbi[lineSplit[0]]['FFST'] = lineSplit[48]
+                                        csvmbbi[lineSplit[0]]['FFVL'] = lineSplit[49]
+                                        csvmbbi[lineSplit[0]]['FFSV'] = lineSplit[50]
+                                        csvmbbi[lineSplit[0]]['COSV'] = lineSplit[51]
+                                        csvmbbi[lineSplit[0]]['UNSV'] = lineSplit[52]
+                                        csvmbbi[lineSplit[0]]['SCAN'] = lineSplit[53]
+                                        
+                                    else:
+                                        if (current == 'MBBO'):
+                                            csvmbbo[lineSplit[0]]['EQ'] = lineSplit[1]
+                                            csvmbbo[lineSplit[0]]['DESC'] = lineSplit[2]
+                                            csvmbbo[lineSplit[0]]['ZRST'] = lineSplit[3]
+                                            csvmbbo[lineSplit[0]]['ZRVL'] = lineSplit[4]
+                                            csvmbbo[lineSplit[0]]['ZRSV'] = lineSplit[5]
+                                            csvmbbo[lineSplit[0]]['ONST'] = lineSplit[6]
+                                            csvmbbo[lineSplit[0]]['ONVL'] = lineSplit[7]
+                                            csvmbbo[lineSplit[0]]['ONSV'] = lineSplit[8]
+                                            csvmbbo[lineSplit[0]]['TWST'] = lineSplit[9]
+                                            csvmbbo[lineSplit[0]]['TWVL'] = lineSplit[10]
+                                            csvmbbo[lineSplit[0]]['TWSV'] = lineSplit[11]
+                                            csvmbbo[lineSplit[0]]['THST'] = lineSplit[12]
+                                            csvmbbo[lineSplit[0]]['THVL'] = lineSplit[13]
+                                            csvmbbo[lineSplit[0]]['THSV'] = lineSplit[14]
+                                            csvmbbo[lineSplit[0]]['FRST'] = lineSplit[15]
+                                            csvmbbo[lineSplit[0]]['FRVL'] = lineSplit[16]
+                                            csvmbbo[lineSplit[0]]['FRSV'] = lineSplit[17]
+                                            csvmbbo[lineSplit[0]]['FVST'] = lineSplit[18]
+                                            csvmbbo[lineSplit[0]]['FVVL'] = lineSplit[19]
+                                            csvmbbo[lineSplit[0]]['FVSV'] = lineSplit[20]
+                                            csvmbbo[lineSplit[0]]['SXST'] = lineSplit[21]
+                                            csvmbbo[lineSplit[0]]['SXVL'] = lineSplit[22]
+                                            csvmbbo[lineSplit[0]]['SXSV'] = lineSplit[23]
+                                            csvmbbo[lineSplit[0]]['SVST'] = lineSplit[24]
+                                            csvmbbo[lineSplit[0]]['SVVL'] = lineSplit[25]
+                                            csvmbbo[lineSplit[0]]['SVSV'] = lineSplit[26]
+                                            csvmbbo[lineSplit[0]]['EIST'] = lineSplit[27]
+                                            csvmbbo[lineSplit[0]]['EIVL'] = lineSplit[28]
+                                            csvmbbo[lineSplit[0]]['EISV'] = lineSplit[29]
+                                            csvmbbo[lineSplit[0]]['NIST'] = lineSplit[30]
+                                            csvmbbo[lineSplit[0]]['NIVL'] = lineSplit[31]
+                                            csvmbbo[lineSplit[0]]['NISV'] = lineSplit[32]
+                                            csvmbbo[lineSplit[0]]['TEST'] = lineSplit[33]
+                                            csvmbbo[lineSplit[0]]['TEVL'] = lineSplit[34]
+                                            csvmbbo[lineSplit[0]]['TESV'] = lineSplit[35]
+                                            csvmbbo[lineSplit[0]]['ELST'] = lineSplit[36]
+                                            csvmbbo[lineSplit[0]]['ELVL'] = lineSplit[37]
+                                            csvmbbo[lineSplit[0]]['ELSV'] = lineSplit[38]
+                                            csvmbbo[lineSplit[0]]['TVST'] = lineSplit[39]
+                                            csvmbbo[lineSplit[0]]['TVVL'] = lineSplit[40]
+                                            csvmbbo[lineSplit[0]]['TVSV'] = lineSplit[41]
+                                            csvmbbo[lineSplit[0]]['TTST'] = lineSplit[42]
+                                            csvmbbo[lineSplit[0]]['TTVL'] = lineSplit[43]
+                                            csvmbbo[lineSplit[0]]['TTSV'] = lineSplit[44]
+                                            csvmbbo[lineSplit[0]]['FTST'] = lineSplit[45]
+                                            csvmbbo[lineSplit[0]]['FTVL'] = lineSplit[46]
+                                            csvmbbo[lineSplit[0]]['FTSV'] = lineSplit[47]
+                                            csvmbbo[lineSplit[0]]['FFST'] = lineSplit[48]
+                                            csvmbbo[lineSplit[0]]['FFVL'] = lineSplit[49]
+                                            csvmbbo[lineSplit[0]]['FFSV'] = lineSplit[50]
+                                            csvmbbo[lineSplit[0]]['IVOA'] = lineSplit[51]
+                                            csvmbbo[lineSplit[0]]['IVOV'] = lineSplit[52]
+                                            csvmbbo[lineSplit[0]]['COSV'] = lineSplit[53]
+                                            csvmbbo[lineSplit[0]]['UNSV'] = lineSplit[54]
+                                            csvmbbo[lineSplit[0]]['INITIALIZE'] = lineSplit[55]
+                                            csvmbbo[lineSplit[0]]['INIT VAL'] = lineSplit[56]
+                                            
+                                        else:
+                                            print("Could not classify data on line {0} in *.csv file".format(index))
 
     # generate cfg.ini
     with open("{}/cfg.ini".format(args.dst) , "w") as f:
@@ -561,6 +761,9 @@ if not (args.extract) :
         printToCFGFile(f, 'AO', aoaddr)
         printToCFGFile(f, 'AI', aiaddr)
         printToCFGFile(f, 'BO', boaddr)
+        printToCFGFile(f, 'MBBI', mbbiaddr)
+        printToCFGFile(f, 'MBBO', mbboaddr)
+        
         # Convert scaler names to list then to dictionary for printing
         scalerNameList = list(scalers.keys())
         scalerNamesDict = { scalerNameList[i] : '' for i in range(0, len(scalerNameList) ) }
@@ -587,6 +790,7 @@ if not (args.extract) :
         print("Generating {}/init-pv.cmd".format(args.dst))
         printToInitFile(f, boaddr, csvbo, args.beamline, args.crio)
         printToInitFile(f, aoaddr, csvao, args.beamline, args.crio)
+        printToInitFile(f, mbboaddr, csvmbbo, args.beamline, args.crio)
              
 
     #template definitions
@@ -596,7 +800,28 @@ if not (args.extract) :
     tplsclrbdy = '{{\"{0}", \"'+args.crio+':{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
     tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
     tplwfbdy = '{{\"{0}", \"'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\"}}\n'
-
+    
+    tplmbbohdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DESC, PIN, DTYP, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL,\
+THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL,\
+EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL,\
+TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV }}\n'
+    tplmbbobdy = '{{\"{0}", \"'+args.crio+':{1}\" \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
+\"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\", \"{18}\", \"{19}\", \"{20}\", \"{21}\", \"{22}\", \"{23}\",\
+\"{24}\", \"{25}\", \"{26}\", \"{27}\", \"{28}\", \"{29}\", \"{30}\", \"{31}\", \"{32}\", \"{33}\", \"{34}\", \"{35}\",\
+\"{36}\", \"{37}\", \"{38}\", \"{39}\", \"{40}\", \"{41}\", \"{42}\", \"{43}\", \"{44}\", \"{45}\", \"{46}\", \"{47}\",\
+\"{48}\", \"{49}\", \"{50}\", \"{51}\", \"{52}\", \"{53}\", \"{54}\", \"{55}\", \"{56}\"}}'
+    
+    tplmbbihdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DESC, PIN, DTYP, SCAN, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV,\
+THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL,\
+SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST,\
+TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n'
+                                                         
+    tplmbbibdy = '{{\"{0}", \"'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
+\"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\", \"{18}\", \"{19}\", \"{20}\", \"{21}\", \"{22}\", \"{23}\",\
+\"{24}\", \"{25}\", \"{26}\", \"{27}\", \"{28}\", \"{29}\", \"{30}\", \"{31}\", \"{32}\", \"{33}\", \"{34}\", \"{35}\",\
+\"{36}\", \"{37}\", \"{38}\", \"{39}\", \"{40}\", \"{41}\", \"{42}\", \"{43}\", \"{44}\", \"{45}\", \"{46}\", \"{47}\",\
+\"{48}\", \"{49}\", \"{50}\", \"{51}\", \"{52}\", \"{53}\", \"{54}\", \"{55}\"}}\n'
+        
     #Generate substitutions  
     bidict_inverted = {v: k for k, v in bidict.items()} 
     bidict_inverted = {**biaddr, **bidict_inverted}
@@ -604,6 +829,8 @@ if not (args.extract) :
     buildSub(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', csvai)
     buildSub(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', csvbi)
     buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', csvbo)
+    buildSub(tplmbbihdr, tplmbbibdy, args.beamline, args.mbbidtyp, mbbiaddr, "devMBBICRIO.db.template", 'mbbi', csvmbbi)
+    buildSub(tplmbbohdr, tplmbbobdy, args.beamline, args.mbbodtyp, mbboaddr, "devMBBOCRIO.db.template", 'mbbo', csvmbbo)
     buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', csvslr)
     buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', csvwf)
 
@@ -644,5 +871,15 @@ else:
         f.write("WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE\n") 
         for i in list(waveforms.keys()):
             f.write("{0},,,{1}\n".format(i, waveforms[i]['Size'])) 
-        f.write(",,,,,,,,\n,,,,,,,,\n")                                          
+        f.write(",,,,,,,,\n,,,,,,,,\n")     
+        
+        f.write("MBBI INI NAME, DB NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV, SCAN \n") 
+        for i in list(mbbiaddr.keys()):
+            f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,0,0,.1 second\n".format(i)) 
+        f.write(",,,,,,,,\n,,,,,,,,\n")      
+        
+        f.write("MBBO INI NAME, DB NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, INITIALIZE, INIT VAL \n") 
+        for i in list(mbboaddr.keys()):
+            f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,1,0,0,0,0,0\n".format(i)) 
+        f.write(",,,,,,,,\n,,,,,,,,\n")                                      
         
