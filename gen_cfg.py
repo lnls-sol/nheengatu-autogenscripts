@@ -301,8 +301,10 @@ if not (args.extract) :
     copyfile(headerFilesFound[0], args.dst+"/reference/reference.h")
     if (args.useSM):
         copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
- 
- 
+else:
+    if not os.path.exists(args.dst):
+        os.makedirs(args.dst)
+        
 # extract data from header and RT.list whether extract is chosen or not.                           
 for line in lines:
 
@@ -416,12 +418,12 @@ for line in lines:
                             boaddr[result.group(1)]=(result.group(2))                              
                             fpgavarCount += 1
                         else:
-                            result = re.search('IndicatorU64_('+args.aikey+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                            result = re.search('IndicatorU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
                             if (result is not None):
                                 aiaddr["FXP_"+result.group(1)]=(result.group(3))
                                 fpgavarCount += 1   
                             else:
-                                result = re.search('ControlU64_('+args.aokey+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                                result = re.search('ControlU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
                                 if (result is not None):
                                     aoaddr["FXP_"+result.group(1)]=(result.group(3))
                                     fpgavarCount += 1              
