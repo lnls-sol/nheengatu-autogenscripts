@@ -237,6 +237,7 @@ parser.add_argument("--mbbodtyp", help="DTYPE of MBBO record", default = 'CrioMB
 parser.add_argument("--mbbidtyp", help="DTYPE of MBBI record", default = 'CrioMBBI')
 parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioWAVEFORM')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
+parser.add_argument("--loc", help="Name of the location of the CRIO. Default is Cabine <A>", default = 'A')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 parser.add_argument("--cfgcsv", help="csv file name. Default=cfg.csv", default = 'cfg.csv')
 
@@ -796,34 +797,34 @@ if not (args.extract) :
 
     # generate init-recsync.cmd file
     with open("{}/init-recsync.cmd".format(args.dst) , "w") as f:
-        print("Generating {}/init-pv.cmd".format(args.dst))
-        f.write("epicsEnvSet(\"IOCNAME\", \"CRIO-"+args.beamline+"\")\n")           
-        f.write('dbLoadDatabase \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.crio+":REC:\"\n")  
+        print("Generating {}/recsync-pv.cmd".format(args.dst))
+        f.write("epicsEnvSet(\"IOCNAME\", \""+args.beamline+"-"+args.loc+"-"+args.crio+"\")\n")           
+        f.write('dbLoadRecords \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.loc+":"+args.crio+":REC:\"\n")  
 
     #template definitions
-    tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, DESC}}\n'
-    tplbdy = '{{\"{0}", \"'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
-    tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, FREQ, PIN, DESC}}\n'
-    tplsclrbdy = '{{\"{0}", \"'+args.crio+':{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
-    tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
-    tplwfbdy = '{{\"{0}", \"'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\"}}\n'
+    tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
+    tplbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
+    tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, FREQ, PIN, DESC}}\n'
+    tplsclrbdy = '{{\"{0}", \"'+args.loc+'", \"{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
+    tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
+    tplwfbdy = '{{\"{0}", \"'+args.loc+'","'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\"}}\n'
     
-    tplmbbohdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DESC, PIN, DTYP, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL,\
+    tplmbbohdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DESC, PIN, DTYP, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL,\
 THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL,\
 EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL,\
 TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV }}\n'
-    tplmbbobdy = '{{\"{0}", \"'+args.crio+':{1}\" \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
+    tplmbbobdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\" \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
 \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\", \"{18}\", \"{19}\", \"{20}\", \"{21}\", \"{22}\", \"{23}\",\
 \"{24}\", \"{25}\", \"{26}\", \"{27}\", \"{28}\", \"{29}\", \"{30}\", \"{31}\", \"{32}\", \"{33}\", \"{34}\", \"{35}\",\
 \"{36}\", \"{37}\", \"{38}\", \"{39}\", \"{40}\", \"{41}\", \"{42}\", \"{43}\", \"{44}\", \"{45}\", \"{46}\", \"{47}\",\
 \"{48}\", \"{49}\", \"{50}\", \"{51}\", \"{52}\", \"{53}\", \"{54}\", \"{55}\", \"{56}\"}}'
     
-    tplmbbihdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, EQ, DESC, PIN, DTYP, SCAN, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV,\
+    tplmbbihdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DESC, PIN, DTYP, SCAN, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV,\
 THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL,\
 SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST,\
 TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n'
                                                          
-    tplmbbibdy = '{{\"{0}", \"'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
+    tplmbbibdy = '{{\"{0}", \"'+args.loc+'","'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
 \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\", \"{18}\", \"{19}\", \"{20}\", \"{21}\", \"{22}\", \"{23}\",\
 \"{24}\", \"{25}\", \"{26}\", \"{27}\", \"{28}\", \"{29}\", \"{30}\", \"{31}\", \"{32}\", \"{33}\", \"{34}\", \"{35}\",\
 \"{36}\", \"{37}\", \"{38}\", \"{39}\", \"{40}\", \"{41}\", \"{42}\", \"{43}\", \"{44}\", \"{45}\", \"{46}\", \"{47}\",\
@@ -846,13 +847,13 @@ TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n
 else:
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
-        f.write("AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
+        f.write("AI INI NAME,AI SUB-EQUIPMENT NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
         for i in list(aiaddr.keys()):
             f.write("{},,,,,,,,\n".format(i))   
         f.write(",,,,,,,,\n,,,,,,,,\n")  
         
         
-        f.write("BI INI NAME,BI DB NAME,BI DESCRIPTION\n") 
+        f.write("BI INI NAME,BI SUB-EQUIPMENT NAME,BI DESCRIPTION\n") 
         for i in list(biaddr.keys()):
             if (i != "BI0"):
                 f.write("{},,\n".format(i)) 
@@ -860,32 +861,32 @@ else:
             f.write("{},,,,,,,,\n".format(i))             
         f.write(",,,,,,,,\n,,,,,,,,\n")       
                  
-        f.write("BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE, INITIALIZE, INIT VAL\n") 
+        f.write("BO INI NAME,BO SUB-EQUIPMENT NAME,BO DESCRIPTION, AUTOSAVE, INITIALIZE, INIT VAL\n") 
         for i in list(boaddr.keys()):
             f.write("{},,,0,0,0,\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")   
 
-        f.write("AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL\n") 
+        f.write("AO INI NAME,AO SUB-EQUIPMENT NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL\n") 
         for i in list(aoaddr.keys()):
             f.write("{},,,,,,0,0,0\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")     
 
-        f.write("SCALER INI NAME,SCALER DB NAME,SCALER DESCRIPTION\n") 
+        f.write("SCALER INI NAME,SCALER EQUIPMENT NAME,SCALER DESCRIPTION\n") 
         for i in list(scalers.keys()):
             f.write("{},,,,,,,,\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")   
 
-        f.write("WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE\n") 
+        f.write("WAVEFORM INI NAME,WAVEFORM SUB-EQUIPMENT NAME, DESCRIPTION, SIZE\n") 
         for i in list(waveforms.keys()):
             f.write("{0},,,{1}\n".format(i, waveforms[i]['Size'])) 
         f.write(",,,,,,,,\n,,,,,,,,\n")     
         
-        f.write("MBBI INI NAME, DB NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV, SCAN \n") 
+        f.write("MBBI INI NAME,MBBI SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV, SCAN \n") 
         for i in list(mbbiaddr.keys()):
             f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,0,0,.1 second\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")      
         
-        f.write("MBBO INI NAME, DB NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, INITIALIZE, INIT VAL \n") 
+        f.write("MBBO INI NAME,MBBO SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, INITIALIZE, INIT VAL \n") 
         for i in list(mbboaddr.keys()):
             f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,1,0,0,0,0,0\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")                                      
