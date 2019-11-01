@@ -16,7 +16,9 @@ from string import Template
 from shutil import copyfile
 import glob
 import datetime
+from termcolor import colored
 
+    
 ### HELPER FUNCTIONS
 def printToCFGFile(f, key, items):
     f.write("[{}]\n".format(key))
@@ -27,28 +29,37 @@ def printToCFGFile(f, key, items):
 
 def printToReqFile(f, keys, csv, bl, eq):
     for key,value in keys.items():
-        if (csv[key]['AUTOSAVE'] == 1):
-            f.write("{0}:{1}:{2}\n".format(bl, eq, csv[key]['EQ']))   
+        if key in csv:
+            if (csv[key]['AUTOSAVE'] == 1):
+                f.write("{0}:{1}:{2}\n".format(bl, eq, csv[key]['EQ']))   
 
 def printToInitFile(f, keys, csv, bl, eq):
     for key,value in keys.items():
-        if (csv[key]['INITIALIZE'] == 1):
-            f.write("dbpf {0}:{1}:{2} {3}\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL']))   
+        if key in csv:
+            if (csv[key]['INITIALIZE'] == 1):
+                f.write("dbpf {0}:{1}:{2} {3}\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL']))   
             
 
 def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
     tpls = tplhdr.format(dbtemplate)
     if(fname == "scaler"): #SCALER
         for key in pins.keys():
-            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+            if key in csv:
+                tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+            else:
+                print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))              
     else: # Waveform
         if (fname == "waveform"):
             for indx, key in enumerate(pins.keys()):
-                tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
+                if key in csv:
+                    tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
+                else:
+                    print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))                      
         else: # MBBI
             if (fname == "mbbi"):
                 for indx, key in enumerate(pins.keys()):
-                    tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                    if key in csv:
+                        tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                 key             , dtype           , csv[key]['SCAN'], \
                                                 csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
                                                 csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
@@ -67,10 +78,13 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                                 csv[key]['FTST'], csv[key]['FTVL'], csv[key]['FTSV'], \
                                                 csv[key]['FFST'], csv[key]['FFVL'], csv[key]['FFSV'], \
                                                 csv[key]['COSV'], csv[key]['UNSV'] )
+                    else:
+                        print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))        
             else: # MBBO
                 if (fname == "mbbo"):
                     for indx, key in enumerate(pins.keys()):
-                        tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                        if key in csv:
+                            tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                     key             , dtype           , \
                                                     csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
                                                     csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
@@ -90,11 +104,18 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                                     csv[key]['FFST'], csv[key]['FFVL'], csv[key]['FFSV'], \
                                                     csv[key]['IVOA'], csv[key]['IVOV'], \
                                                     csv[key]['COSV'], csv[key]['UNSV'] )
-                else:                    
+                        else:
+                            print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))                        
+                else: #AO, AI, BO, BI                  
                     for indx, key in enumerate(pins.keys()):
                         if (key == 'BI0'):
                             continue
-                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                        if key in csv:
+                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                            if ( not csv[key]['EQ']):
+                                print(colored("WARNING: EQ of {0} is empty. Is this intentional?".format(key), 'red'))
+                        else:
+                            print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))
             
 
     tpls = tpls + "\n}"
@@ -301,7 +322,11 @@ if not (args.extract) :
     copyfile(args.src+"/"+args.cfgcsv, args.dst+"/reference/"+args.cfgcsv)
     copyfile(headerFilesFound[0], args.dst+"/reference/reference.h")
     if (args.useSM):
-        copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
+        if (os.path.isfile(args.src+"/RT.list")):
+            copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
+        else :
+            print('RT.list file not available while -u switch activated.')
+            sys.exit()
 else:
     if not os.path.exists(args.dst):
         os.makedirs(args.dst)
@@ -442,6 +467,9 @@ for line in lines:
 #process RT variables if enabled
 
 if (args.useSM):
+    if (not os.path.isfile(args.src+"/RT.list")):
+        print('RT.list file not available while -u switch activated. exiting...')
+        sys.exit()
     rtlist = [rt.rstrip() for rt in open('{}/RT.list'.format(args.src))]
     for i, val in enumerate(rtlist):
         result = re.search('RT_MBI', val)
@@ -525,7 +553,6 @@ if not (args.extract) :
             removedComma = val.replace(",", "")
             removedComma = removedComma.replace(" ", "")
             if (not removedComma):
-                print('Found empty line {0} in csv file. Ignoring'.format(index+1))
                 continue
             lineSplit = val.split(',')
             result = re.search('^AI INI NAME', lineSplit[0])
@@ -849,7 +876,14 @@ else:
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
         f.write("AI INI NAME,AI SUB-EQUIPMENT NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
         for i in list(aiaddr.keys()):
-            f.write("{},,,,,,,,\n".format(i))   
+            for j in list(scalers.keys()):
+                result = re.search(j, i)
+                if (result is not None):
+                    break
+            if (result is not None):
+                f.write("{},,,1,64,32,,,\n".format(i))   
+            else:
+                f.write("{},,,,,,,,\n".format(i))   
         f.write(",,,,,,,,\n,,,,,,,,\n")  
         
         
@@ -868,7 +902,14 @@ else:
 
         f.write("AO INI NAME,AO SUB-EQUIPMENT NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL\n") 
         for i in list(aoaddr.keys()):
-            f.write("{},,,,,,0,0,0\n".format(i)) 
+            for j in list(scalers.keys()):
+                result = re.search(j, i)
+                if (result is not None):
+                    break                
+            if (result is not None):
+                f.write("{},,,1,64,64,0,0,0\n".format(i))   
+            else:
+                f.write("{},,,,,,0,0,0\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")     
 
         f.write("SCALER INI NAME,SCALER EQUIPMENT NAME,SCALER DESCRIPTION\n") 
