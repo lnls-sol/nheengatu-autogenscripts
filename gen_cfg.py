@@ -875,12 +875,15 @@ else:
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
         f.write("AI INI NAME,AI SUB-EQUIPMENT NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
+        result = None
         for i in list(aiaddr.keys()):
+            #print(i)
             for j in list(scalers.keys()):
                 result = re.search(j, i)
                 if (result is not None):
                     break
             if (result is not None):
+                print(result)
                 f.write("{},,,1,64,32,,,\n".format(i))   
             else:
                 f.write("{},,,,,,,,\n".format(i))   
@@ -903,6 +906,7 @@ else:
         f.write("AO INI NAME,AO SUB-EQUIPMENT NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL\n") 
         for i in list(aoaddr.keys()):
             for j in list(scalers.keys()):
+                result = None
                 result = re.search(j, i)
                 if (result is not None):
                     break                
