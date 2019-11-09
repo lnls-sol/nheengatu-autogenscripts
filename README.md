@@ -14,12 +14,14 @@ FPGA C API generated header.
 ### cfg.csv template generation example
     
     $ ./gen_cfg.py -s ./gen_cfg_example/ -u --waveformkey waveform_ --binum 24 --extract
-    
+    $ ./gen_cfg.py -s ./gen_cfg_mbb_example/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u --extract
+    $ ./gen_cfg.py -s ./gen_cfg_example_9045/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u --extract
     
 ### cfg.ini and EPICS substitutions generation examples
 
     $ ./gen_cfg.py -s ./gen_cfg_example/ -u --waveformkey waveform_ --binum 24
-
+    $ ./gen_cfg.py -s ./gen_cfg_mbb_example/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u
+    $ ./gen_cfg.py -s ./gen_cfg_example_9045/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u
 
 
 ### Notes
@@ -30,7 +32,7 @@ FPGA C API generated header.
     $ └── RT.list
  
  * NiFpga_fpga_all_example.h: Header file generated with FPGA C API
- * RT.list: If SM is enabled, this file must exist, and should contain the order of the variables in the labview RT VI
+ * RT.list: If SM is enabled, this file must exist, and should contain the order of the variables in the labview RT VI (content automatically generated)
  * NiFpga_fpga_all_example.lvbitx: bit stream. It will only be copied by the script to the destination folder
  * cfg.csv : example of an already filled cfg.csv file. The script generates a template that will be filled by the user
 
