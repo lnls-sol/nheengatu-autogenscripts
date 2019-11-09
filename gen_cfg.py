@@ -17,7 +17,7 @@ from shutil import copyfile
 import glob
 import datetime
 from termcolor import colored
-
+import shutil
     
 ### HELPER FUNCTIONS
 def printToCFGFile(f, key, items):
@@ -320,7 +320,7 @@ if not (args.extract) :
         f.write("#!/bin/bash\n")  
         f.write(callCommand)        
     copyfile(args.src+"/"+args.cfgcsv, args.dst+"/reference/"+args.cfgcsv)
-    copyfile(headerFilesFound[0], args.dst+"/reference/reference.h")
+    shutil.copy2(headerFilesFound[0], args.dst+"/reference")
     if (args.useSM):
         if (os.path.isfile(args.src+"/RT.list")):
             copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
@@ -417,6 +417,7 @@ for line in lines:
         if (result is not None):
             settings['Bitfile Name']=(result.group(1))
             copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/{1}".format(args.dst,result.group(1)))
+            copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/reference/{1}".format(args.dst,result.group(1)))
         else:
             # Extracting BI, BO, AI, AO, AI FXP and AO FXP
             result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
