@@ -263,8 +263,15 @@ parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CR
 parser.add_argument("--cfgcsv", help="csv file name. Default=cfg.csv", default = 'cfg.csv')
 
 
+
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+    
+    
 # read arguments from the command line
 args = parser.parse_args()
+
 
 biaddr = {}
 boaddr = {}
