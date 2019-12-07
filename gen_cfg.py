@@ -20,10 +20,18 @@ from termcolor import colored
 import shutil
     
 ### HELPER FUNCTIONS
-def printToCFGFile(f, key, items):
-    f.write("[{}]\n".format(key))
+def printToCFGFile(f, cfgkey, items, csv, use_csv):
+    f.write("[{}]\n".format(cfgkey))
     for key,value in items.items():
-        f.write("{}={}\n".format(key,value))   
+        if (use_csv == 1):
+            if (cfgkey == 'BI0'):
+                if value in csv:
+                    f.write("{}={}\n".format(key,value)) 
+            elif key in csv:
+                f.write("{}={}\n".format(key,value)) 
+        else:
+            f.write("{}={}\n".format(key,value))    
+          
     f.write("\n\n")     
 
 
@@ -793,26 +801,26 @@ if not (args.extract) :
     with open("{}/cfg.ini".format(args.dst) , "w") as f:
         print("Generating {}/cfg.ini".format(args.dst))
         f.write(header.format(datetime.datetime.now()))
-        printToCFGFile(f, 'Settings', settings)
-        printToCFGFile(f, 'BIAddresses', biaddr)
-        printToCFGFile(f, 'BI0', bidict)
-        printToCFGFile(f, 'AO', aoaddr)
-        printToCFGFile(f, 'AI', aiaddr)
-        printToCFGFile(f, 'BO', boaddr)
-        printToCFGFile(f, 'MBBI', mbbiaddr)
-        printToCFGFile(f, 'MBBO', mbboaddr)
+        printToCFGFile(f, 'Settings', settings, dict(), 0)
+        printToCFGFile(f, 'BIAddresses', biaddr, dict(), 0)
+        printToCFGFile(f, 'BI0', bidict, csvbi, 1)
+        printToCFGFile(f, 'AO', aoaddr, csvao, 1)
+        printToCFGFile(f, 'AI', aiaddr, csvai, 1)
+        printToCFGFile(f, 'BO', boaddr, csvbo, 1)
+        printToCFGFile(f, 'MBBI', mbbiaddr, csvmbbi, 1)
+        printToCFGFile(f, 'MBBO', mbboaddr, csvmbbo, 1)
         
         # Convert scaler names to list then to dictionary for printing
         scalerNameList = list(scalers.keys())
         scalerNamesDict = { scalerNameList[i] : '' for i in range(0, len(scalerNameList) ) }
-        printToCFGFile(f, 'SCALERS', scalerNamesDict)
+        printToCFGFile(f, 'SCALERS', scalerNamesDict, csvslr, 1)
         for scaler in scalers:
-            printToCFGFile(f, scaler, scalers[scaler])
+            printToCFGFile(f, scaler, scalers[scaler], dict(), 0)
         for fxp in fxps:
-            printToCFGFile(f, fxp, fxps[fxp])            
+            printToCFGFile(f, fxp, fxps[fxp], dict(), 0)            
         waveformNameList = list(waveforms.keys())
         waveformNamesDict = { waveformNameList[i] : '' for i in range(0, len(waveformNameList) ) }
-        printToCFGFile(f, 'WAVEFORMS', waveformNamesDict)        
+        printToCFGFile(f, 'WAVEFORMS', waveformNamesDict, csvwf, 1)        
         for waveform in waveforms:
             printToCFGFile(f, waveform, waveforms[waveform])                                                             
 
