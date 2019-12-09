@@ -270,6 +270,8 @@ parser.add_argument("--loc", help="Name of the location of the CRIO. Default is 
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 parser.add_argument("--cfgcsv", help="csv file name. Default=cfg.csv", default = 'cfg.csv')
 parser.add_argument("--refcsv", help="when extract, use existing csv file <default=cfg.csv> as reference when extracting the new one.", action='store_true')
+parser.add_argument("--delimiter", help="Delimiter in csv file. Default is ,", default = ',')
+
 
 
 
@@ -282,6 +284,8 @@ if len(sys.argv)==1:
 args = parser.parse_args()
 
 
+dlm = args.delimiter
+    
 biaddr = {}
 boaddr = {}
 aoaddr = {}
@@ -579,11 +583,11 @@ if not (args.extract) :
         current = "None"
         for index, val in enumerate(lines):
             val = val.strip()
-            removedComma = val.replace(",", "")
-            removedComma = removedComma.replace(" ", "")
-            if (not removedComma):
+            removedDelimiter = val.replace(dlm , "")
+            removedDelimiter = removedDelimiter.replace(" ", "")
+            if (not removedDelimiter):
                 continue
-            lineSplit = val.split(',')
+            lineSplit = val.split(dlm)
             result = re.search('^AI INI NAME', lineSplit[0])
             if (result is not None):
                 current = "AI"
@@ -909,11 +913,11 @@ else:
         current = "None"
         for index, val in enumerate(lines):
             #val = val.strip()
-            removedComma = val.replace(",", "")
-            removedComma = removedComma.replace(" ", "")
-            if (not removedComma):
+            removedDelimiter = val.replace(dlm, "")
+            removedDelimiter = removedDelimiter.replace(" ", "")
+            if (not removedDelimiter):
                 continue
-            lineSplit = val.split(',')
+            lineSplit = val.split(dlm)
             result = re.search('^AI INI NAME', lineSplit[0])
             if (result is not None):
                 current = "AI"
@@ -984,7 +988,7 @@ else:
     
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
-        f.write("AI INI NAME,AI SUB-EQUIPMENT NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
+        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)\n") 
         result = None
         
 
@@ -1001,40 +1005,40 @@ else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:
-                    f.write("{},,,1,64,32,,,\n".format(i))   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm*3+"\n")   
             else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:            
-                    f.write("{},,,,,,,,\n".format(i))   
-        f.write(",,,,,,,,\n,,,,,,,,\n")  
+                    f.write("{}".format(i)+dlm*8+"\n")   
+        f.write(""+dlm*8+"\n"+dlm*8+"\n")  
         
         
-        f.write("BI INI NAME,BI SUB-EQUIPMENT NAME,BI DESCRIPTION\n") 
+        f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION\n") 
         for i in list(biaddr.keys()):
             if (i != "BI0"):
                 if i in csvbiref:
                     f.write(csvbiref[i])
                 else: 
-                    f.write("{},,\n".format(i)) 
+                    f.write("{}".format(i)+dlm*7+"\n") 
                     
         for i in bidict.values():
             if i in csvbiref:
                 f.write(csvbiref[i])
             else:
-                f.write("{},,,,,,,,\n".format(i))  
+                f.write("{}".format(i)+dlm*8+"\n")  
                            
-        f.write(",,,,,,,,\n,,,,,,,,\n")       
+        f.write(dlm*8+"\n"+dlm*8+"\n")       
                  
-        f.write("BO INI NAME,BO SUB-EQUIPMENT NAME,BO DESCRIPTION, AUTOSAVE, INITIALIZE, INIT VAL\n") 
+        f.write("BO INI NAME"+dlm+"BO SUB-EQUIPMENT NAME"+dlm+"BO DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL\n") 
         for i in list(boaddr.keys()):
             if i in csvboref:
                 f.write(csvboref[i])
             else:        
-                f.write("{},,,0,0,0,\n".format(i)) 
-        f.write(",,,,,,,,\n,,,,,,,,\n")   
+                f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"\n") 
+        f.write(dlm*8+"\n"+dlm*8+"\n")   
 
-        f.write("AO INI NAME,AO SUB-EQUIPMENT NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL\n") 
+        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL\n") 
         for i in list(aoaddr.keys()):
             for j in list(scalers.keys()):
                 result = None
@@ -1045,43 +1049,44 @@ else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:              
-                    f.write("{},,,1,64,64,0,0,0\n".format(i))   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"64"+dlm+"0"+dlm+"0"+dlm+"0\n")   
             else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:             
-                    f.write("{},,,,,,0,0,0\n".format(i)) 
-        f.write(",,,,,,,,\n,,,,,,,,\n")     
+                    f.write("{}".format(i)+dlm*6+"0"+dlm+"0"+dlm+"0\n") 
+        f.write(dlm+"\n"+dlm*8+"\n")     
 
-        f.write("SCALER INI NAME,SCALER EQUIPMENT NAME,SCALER DESCRIPTION\n") 
+        f.write("SCALER INI NAME"+dlm+"SCALER EQUIPMENT NAME"+dlm+"SCALER DESCRIPTION\n") 
         for i in list(scalers.keys()):
             if i in csvslrref:
                 f.write(csvslrref[i])
             else:        
-                f.write("{},,,,,,,,\n".format(i)) 
-        f.write(",,,,,,,,\n,,,,,,,,\n")   
+                f.write("{}".format(i)+dlm*8+"\n") 
+        f.write(dlm+"\n"+dlm+"\n")   
 
-        f.write("WAVEFORM INI NAME,WAVEFORM SUB-EQUIPMENT NAME, DESCRIPTION, SIZE\n") 
+        f.write("WAVEFORM INI NAME"+dlm+"WAVEFORM SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" SIZE\n") 
         for i in list(waveforms.keys()):
             if i in csvwfref:
                 f.write(csvwfref[i])
             else:         
-                f.write("{0},,,{1}\n".format(i, waveforms[i]['Size']))  
-        f.write(",,,,,,,,\n,,,,,,,,\n")     
+                f.write("{0}".format(i, waveforms[i]['Size'])+dlm*3+"{1}\n")  
+        f.write(dlm*8+"\n"+dlm*8+"\n")     
         
-        f.write("MBBI INI NAME,MBBI SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV, SCAN \n") 
+        f.write("MBBI INI NAME"+dlm+"MBBI SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" COSV"+dlm+" UNSV"+dlm+" SCAN \n") 
         for i in list(mbbiaddr.keys()):
             if i in csvmbbiref:
                 f.write(csvmbbiref[i])
             else:         
-                f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,0,0,.1 second\n".format(i)) 
-        f.write(",,,,,,,,\n,,,,,,,,\n")      
+                f.write("{}.format(i)"+dlm+"0"+dlm+"INVALID"+dlm*2
++"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"0"+dlm+"0"+dlm+".1 second\n") 
+        f.write(dlm*8+"\n"+dlm*8+"\n")      
         
-        f.write("MBBO INI NAME,MBBO SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, INITIALIZE, INIT VAL \n") 
+        f.write("MBBO INI NAME"+dlm+"MBBO SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" IVOA"+dlm+" IVOV"+dlm+" COSV"+dlm+" UNSV"+dlm+" INITIALIZE"+dlm+" INIT VAL \n") 
         for i in list(mbboaddr.keys()):
             if i in csvmbboref:
                 f.write(csvmbboref[i])
             else:         
-                f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,1,0,0,0,0,0\n".format(i)) 
-        f.write(",,,,,,,,\n,,,,,,,,\n")                                      
+                f.write("{}".format(i)+dlm*4+"0"+dlm+"INVALID"+dlm*2+"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"1"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
+        f.write(dlm*8+"\n"+dlm*8+"\n")                                      
         
