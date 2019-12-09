@@ -1,0 +1,87 @@
+AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP),,,
+FXP_FXP_HeartBeatFPGA,HeartbeatFPGA,Tatu heartbeat (FPGA),0,64,64,,,
+AI_flyscaler_0,9215A:ai0,Scaler 9215A ch 0,,,,,,
+AI_flyscaler_1,9215A:ai1,Scaler 9215A ch 1,,,,,,
+AI_flyscaler_2,9215A:ai2,Scaler 9215A ch 2,,,,,,
+AI_flyscaler_3,9215A:ai3,Scaler 9215A ch 3,,,,,,
+AI_flyscanpts,9215A:FlyscanPoints,# of points recorded in Tatu fly-scan,,,,,,
+RT_U64_AI_heartbeatRT,HeartbeatRT,Tatu heartbeat (Linux RT),,,,,,
+,,,,,,,,
+BI INI NAME,BI DB NAME,BI DESCRIPTION,,,,,,
+DI0,9401A:bi0,Tatu (9401A) IO0 (P0),,,,,,
+DI1,9401A:bi1,Tatu (9401A) IO1 (P1),,,,,,
+DI2,9401A:bi2,Tatu (9401A) IO2 (P2),,,,,,
+DI3,9401A:bi3,Tatu (9401A) IO3 (P3),,,,,,
+DI4,9401A:bo4_RBV,Tatu (9401A) IO4 out (readback value),,,,,,
+DI5,9401A:bo5_RBV,Tatu (9401A) IO5 out (readback value),,,,,,
+DI6,9401A:bo6_RBV,Tatu (9401A) IO6 out (readback value),,,,,,
+DI7,9401A:bo7_RBV,Tatu (9401A) IO7 out (readback value),,,,,,
+,,,,,,,,
+BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE, INITIALIZE, INIT VAL,,,
+BO_FlyScanRecord,9401A:Record,Tatu record mode,1,1,0,,,
+BO_TatuActive,9401A:Activate,Tatu activate,1,1,1,,,
+BO_rele0,9481A:Relay0,9481A relay ch0,1,0,0,,,
+BO_rele1,9481A:Relay1,9481A relay ch1,1,0,0,,,
+BO_rele2,9481A:Relay2,9481A relay ch2,1,0,0,,,
+BO_rele3,9481A:Relay3,9481A relay ch3,1,0,0,,,
+BO_ResetAll,9481A:TatuResetAll,Reset all Tatu parameters,0,0,0,,,
+,,,,,,,,
+AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL
+FXP_FXP_InputTriggerIO0,9401A:InputTriggerIO0,Tatu IO0 Trigger mode (pulse/state),0,64,64,0,0,0
+FXP_FXP_InputTriggerIO1,9401A:InputTriggerIO1,Tatu IO1 Trigger mode (pulse/state),0,64,64,0,0,0
+FXP_FXP_InputTriggerIO2,9401A:InputTriggerIO2,Tatu IO2 Trigger mode (pulse/state),0,64,64,0,0,0
+FXP_FXP_InputTriggerIO3,9401A:InputTriggerIO3,Tatu IO3 Trigger mode (pulse/state),0,64,64,0,0,0
+AO_ConditionIO4_0,9401A:ConditionIO4:c0,Tatu condition to trigger IO4-case 0,,,,0,0,0
+AO_ConditionIO4_1,9401A:ConditionIO4:c1,Tatu condition to trigger IO4-case 1,,,,0,0,0
+AO_ConditionIO4_2,9401A:ConditionIO4:c2,Tatu condition to trigger IO4-case 2,,,,0,0,0
+AO_ConditionIO5_0,9401A:ConditionIO5:c0,Tatu condition to trigger IO5-case 0,,,,0,0,0
+AO_ConditionIO5_1,9401A:ConditionIO5:c1,Tatu condition to trigger IO5-case 1,,,,0,0,0
+AO_ConditionIO5_2,9401A:ConditionIO5:c2,Tatu condition to trigger IO5-case 2,,,,0,0,0
+AO_ConditionIO6_0,9401A:ConditionIO6:c0,Tatu condition to trigger IO6-case 0,,,,0,0,0
+AO_ConditionIO6_1,9401A:ConditionIO6:c1,Tatu condition to trigger IO6-case 1,,,,0,0,0
+AO_ConditionIO6_2,9401A:ConditionIO6:c2,Tatu condition to trigger IO6-case 2,,,,0,0,0
+AO_ConditionIO7_0,9401A:ConditionIO7:c0,Tatu condition to trigger IO7-case 0,,,,0,0,0
+AO_ConditionIO7_1,9401A:ConditionIO7:c1,Tatu condition to trigger IO7-case 1,,,,0,0,0
+AO_ConditionIO7_2,9401A:ConditionIO7:c2,Tatu condition to trigger IO7-case 2,,,,0,0,0
+AO_DelayIO4_0,9401A:DelayIO4:c0,Tatu pulse delay IO4-case 0 (uSec),,,,0,0,0
+AO_DelayIO4_1,9401A:DelayIO4:c1,Tatu pulse delay IO4-case 1 (uSec),,,,0,0,0
+AO_DelayIO4_2,9401A:DelayIO4:c2,Tatu pulse delay IO4-case 2 (uSec),,,,0,0,0
+AO_DelayIO5_0,9401A:DelayIO5:c0,Tatu pulse delay IO5-case 0 (uSec),,,,0,0,0
+AO_DelayIO5_1,9401A:DelayIO5:c1,Tatu pulse delay IO5-case 1 (uSec),,,,0,0,0
+AO_DelayIO5_2,9401A:DelayIO5:c2,Tatu pulse delay IO5-case 2 (uSec),,,,0,0,0
+AO_DelayIO6_0,9401A:DelayIO6:c0,Tatu pulse delay IO6-case 0 (uSec),,,,0,0,0
+AO_DelayIO6_1,9401A:DelayIO6:c1,Tatu pulse delay IO6-case 1 (uSec),,,,0,0,0
+AO_DelayIO6_2,9401A:DelayIO6:c2,Tatu pulse delay IO6-case 2 (uSec),,,,0,0,0
+AO_DelayIO7_0,9401A:DelayIO7:c0,Tatu pulse delay IO7-case 0 (uSec),,,,0,0,0
+AO_DelayIO7_1,9401A:DelayIO7:c1,Tatu pulse delay IO7-case 1 (uSec),,,,0,0,0
+AO_DelayIO7_2,9401A:DelayIO7:c2,Tatu pulse delay IO7-case 2 (uSec),,,,0,0,0
+AO_OutputIO4_0,9401A:OutputIO4:c0,Tatu output mode for IO4-case 0,,,,0,0,0
+AO_OutputIO4_1,9401A:OutputIO4:c1,Tatu output mode for IO4-case 1,,,,0,0,0
+AO_OutputIO4_2,9401A:OutputIO4:c2,Tatu output mode for IO4-case 2,,,,0,0,0
+AO_OutputIO5_0,9401A:OutputIO5:c0,Tatu output mode for IO5-case 0,,,,0,0,0
+AO_OutputIO5_1,9401A:OutputIO5:c1,Tatu output mode for IO5-case 1,,,,0,0,0
+AO_OutputIO5_2,9401A:OutputIO5:c2,Tatu output mode for IO5-case 2,,,,0,0,0
+AO_OutputIO6_0,9401A:OutputIO6:c0,Tatu output mode for IO6-case 0,,,,0,0,0
+AO_OutputIO6_1,9401A:OutputIO6:c1,Tatu output mode for IO6-case 1,,,,0,0,0
+AO_OutputIO6_2,9401A:OutputIO6:c2,Tatu output mode for IO6-case 2,,,,0,0,0
+AO_OutputIO7_0,9401A:OutputIO7:c0,Tatu output mode for IO7-case 0,,,,0,0,0
+AO_OutputIO7_1,9401A:OutputIO7:c1,Tatu output mode for IO7-case 1,,,,0,0,0
+AO_OutputIO7_2,9401A:OutputIO7:c2,Tatu output mode for IO7-case 2,,,,0,0,0
+AO_PulseIO4_0,9401A:PulseIO4:c0,Tatu pulsewidth IO4-case 0 (pulse mode),,,,0,0,0
+AO_PulseIO4_1,9401A:PulseIO4:c1,Tatu pulsewidth IO4-case 1 (pulse mode),,,,0,0,0
+AO_PulseIO4_2,9401A:PulseIO4:c2,Tatu pulsewidth IO4-case 2 (pulse mode),,,,0,0,0
+AO_PulseIO5_0,9401A:PulseIO5:c0,Tatu pulsewidth IO5-case 0 (pulse mode),,,,0,0,0
+AO_PulseIO5_1,9401A:PulseIO5:c1,Tatu pulsewidth IO5-case 1 (pulse mode),,,,0,0,0
+AO_PulseIO5_2,9401A:PulseIO5:c2,Tatu pulsewidth IO5-case 2 (pulse mode),,,,0,0,0
+AO_PulseIO6_0,9401A:PulseIO6:c0,Tatu pulsewidth IO6-case 0 (pulse mode),,,,0,0,0
+AO_PulseIO6_1,9401A:PulseIO6:c1,Tatu pulsewidth IO6-case 1 (pulse mode),,,,0,0,0
+AO_PulseIO6_2,9401A:PulseIO6:c2,Tatu pulsewidth IO6-case 2 (pulse mode),,,,0,0,0
+AO_PulseIO7_0,9401A:PulseIO7:c0,Tatu pulsewidth IO7-case 0 (pulse mode),,,,0,0,0
+AO_PulseIO7_1,9401A:PulseIO7:c1,Tatu pulsewidth IO7-case 1 (pulse mode),,,,0,0,0
+AO_PulseIO7_2,9401A:PulseIO7:c2,Tatu pulsewidth IO7-case 2 (pulse mode),,,,0,0,0
+AO_shiftLeft,SCALER:ShiftLeft,Scale factor for Scaler AI channels,,,,0,0,0
+,,,,,,,,
+SCALER INI NAME,SCALER DB NAME,SCALER DESCRIPTION,,,,,,
+SCALER,9215A:SCALER,Scaler channels,,,,,,
+,,,,,,,,
+WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE,,,,,

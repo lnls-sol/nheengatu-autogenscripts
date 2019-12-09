@@ -269,6 +269,7 @@ parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", defau
 parser.add_argument("--loc", help="Name of the location of the CRIO. Default is Cabine <A>", default = 'A')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 parser.add_argument("--cfgcsv", help="csv file name. Default=cfg.csv", default = 'cfg.csv')
+parser.add_argument("--refcsv", help="when extract, use existing csv file <default=cfg.csv> as reference when extracting the new one.", action='store_true')
 
 
 
@@ -300,6 +301,16 @@ csvmbbi = collections.defaultdict(dict)
 csvmbbo = collections.defaultdict(dict)
 csvwf = collections.defaultdict(dict)
 csvslr = collections.defaultdict(dict)
+
+csvairef = collections.defaultdict(dict)
+csvbiref = collections.defaultdict(dict)
+csvboref = collections.defaultdict(dict)
+csvaoref = collections.defaultdict(dict)
+csvmbbiref = collections.defaultdict(dict)
+csvmbboref = collections.defaultdict(dict)
+csvwfref = collections.defaultdict(dict)
+csvslrref = collections.defaultdict(dict)
+
 settings = {'Destination Crio IP' : args.ip,
             'Path':args.path,
             'Use Shared Memory': 1 if(args.useSM) else 0,
@@ -309,8 +320,9 @@ rtvarCount = 0;
 fpgavarCount = 0;
 
 
-              
-
+if not os.path.exists(args.src):
+    print("Source folder not found <{0}>. Is this the correct path?".format( args.src))
+    sys.exit()
         
 # search for header file
 headerFilesFound = glob.glob("{0}/*.h".format(args.src));
@@ -343,6 +355,7 @@ if not (args.extract) :
             print('RT.list file not available while -u switch activated.')
             sys.exit()
 else:
+    copyfile(args.src+"/"+args.cfgcsv, args.src+"/cfg_old.csv")
     if not os.path.exists(args.dst):
         os.makedirs(args.dst)
         
@@ -888,10 +901,95 @@ TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n
     print("Check {0} folder, and modify the substitution files.".format(args.dst))
 
 else:
+
+    #Check if there is need to use reference cfg file
+    if (args.refcsv):
+        with open("{0}/{1}".format(args.src, "cfg_old.csv") , "r") as f:
+            lines = f.readlines()
+        current = "None"
+        for index, val in enumerate(lines):
+            #val = val.strip()
+            removedComma = val.replace(",", "")
+            removedComma = removedComma.replace(" ", "")
+            if (not removedComma):
+                continue
+            lineSplit = val.split(',')
+            result = re.search('^AI INI NAME', lineSplit[0])
+            if (result is not None):
+                current = "AI"
+                continue
+            else :
+                result = re.search('^BI INI NAME', lineSplit[0])
+                if (result is not None):
+                    current = "BI"
+                    continue
+                else :
+                    result = re.search('^BO INI NAME', lineSplit[0])
+                    if (result is not None):
+                        current = "BO"
+                        continue
+                    else :    
+                        result = re.search('^AO INI NAME', lineSplit[0])
+                        if (result is not None):
+                            current = "AO"
+                            continue
+                        else :
+                            result = re.search('^SCALER INI NAME', lineSplit[0])
+                            if (result is not None):
+                                current = "SCALER"
+                                continue
+                            else :               
+                                result = re.search('^WAVEFORM INI NAME', lineSplit[0])
+                                if (result is not None):
+                                    current = "WAVEFORM"
+                                    continue
+                                else :               
+                                    result = re.search('^MBBI INI NAME', lineSplit[0])
+                                    if (result is not None):
+                                        current = "MBBI"
+                                        continue 
+                                    else :               
+                                        result = re.search('^MBBO INI NAME', lineSplit[0])
+                                        if (result is not None):
+                                            current = "MBBO"
+                                            continue                                                                           
+            if (current == 'AI'):
+                csvairef[lineSplit[0]] = val
+                        
+            else: 
+                if (current == 'AO'):
+                    csvaoref[lineSplit[0]] = val
+                         
+                else: 
+                    if (current == 'BI'):
+                        csvbiref[lineSplit[0]] = val
+
+                    else: 
+                        if (current == 'BO'):
+                            csvboref[lineSplit[0]] = val
+                          
+                        else: 
+                            if (current == 'WAVEFORM'):
+                                csvwfref[lineSplit[0]] = val
+                            else: 
+                                if (current == 'SCALER'):
+                                    csvslrref[lineSplit[0]] = val
+                                else:
+                                    if (current == 'MBBI'):
+                                        csvmbbiref[lineSplit[0]] = val
+                                        
+                                    else:
+                                        if (current == 'MBBO'):
+                                            csvmbboref[lineSplit[0]] = val 
+    
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
         f.write("AI INI NAME,AI SUB-EQUIPMENT NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)\n") 
         result = None
+        
+
+        
+              
         for i in list(aiaddr.keys()):
             #print(i)
             for j in list(scalers.keys()):
@@ -899,24 +997,41 @@ else:
                 if (result is not None):
                     break
             if (result is not None):
-                print(result)
-                f.write("{},,,1,64,32,,,\n".format(i))   
+                #print(result)
+                if i in csvairef:
+                    f.write(csvairef[i])
+                else:
+                    f.write("{},,,1,64,32,,,\n".format(i))   
             else:
-                f.write("{},,,,,,,,\n".format(i))   
+                if i in csvairef:
+                    f.write(csvairef[i])
+                else:            
+                    f.write("{},,,,,,,,\n".format(i))   
         f.write(",,,,,,,,\n,,,,,,,,\n")  
         
         
         f.write("BI INI NAME,BI SUB-EQUIPMENT NAME,BI DESCRIPTION\n") 
         for i in list(biaddr.keys()):
             if (i != "BI0"):
-                f.write("{},,\n".format(i)) 
+                if i in csvbiref:
+                    f.write(csvbiref[i])
+                else: 
+                    f.write("{},,\n".format(i)) 
+                    
         for i in bidict.values():
-            f.write("{},,,,,,,,\n".format(i))             
+            if i in csvbiref:
+                f.write(csvbiref[i])
+            else:
+                f.write("{},,,,,,,,\n".format(i))  
+                           
         f.write(",,,,,,,,\n,,,,,,,,\n")       
                  
         f.write("BO INI NAME,BO SUB-EQUIPMENT NAME,BO DESCRIPTION, AUTOSAVE, INITIALIZE, INIT VAL\n") 
         for i in list(boaddr.keys()):
-            f.write("{},,,0,0,0,\n".format(i)) 
+            if i in csvboref:
+                f.write(csvboref[i])
+            else:        
+                f.write("{},,,0,0,0,\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")   
 
         f.write("AO INI NAME,AO SUB-EQUIPMENT NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL\n") 
@@ -927,28 +1042,46 @@ else:
                 if (result is not None):
                     break                
             if (result is not None):
-                f.write("{},,,1,64,64,0,0,0\n".format(i))   
+                if i in csvaoref:
+                    f.write(csvaoref[i])
+                else:              
+                    f.write("{},,,1,64,64,0,0,0\n".format(i))   
             else:
-                f.write("{},,,,,,0,0,0\n".format(i)) 
+                if i in csvaoref:
+                    f.write(csvaoref[i])
+                else:             
+                    f.write("{},,,,,,0,0,0\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")     
 
         f.write("SCALER INI NAME,SCALER EQUIPMENT NAME,SCALER DESCRIPTION\n") 
         for i in list(scalers.keys()):
-            f.write("{},,,,,,,,\n".format(i)) 
+            if i in csvslrref:
+                f.write(csvslrref[i])
+            else:        
+                f.write("{},,,,,,,,\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")   
 
         f.write("WAVEFORM INI NAME,WAVEFORM SUB-EQUIPMENT NAME, DESCRIPTION, SIZE\n") 
         for i in list(waveforms.keys()):
-            f.write("{0},,,{1}\n".format(i, waveforms[i]['Size'])) 
+            if i in csvwfref:
+                f.write(csvwfref[i])
+            else:         
+                f.write("{0},,,{1}\n".format(i, waveforms[i]['Size']))  
         f.write(",,,,,,,,\n,,,,,,,,\n")     
         
         f.write("MBBI INI NAME,MBBI SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV, SCAN \n") 
         for i in list(mbbiaddr.keys()):
-            f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,0,0,.1 second\n".format(i)) 
+            if i in csvmbbiref:
+                f.write(csvmbbiref[i])
+            else:         
+                f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,0,0,.1 second\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")      
         
         f.write("MBBO INI NAME,MBBO SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, INITIALIZE, INIT VAL \n") 
         for i in list(mbboaddr.keys()):
-            f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,1,0,0,0,0,0\n".format(i)) 
+            if i in csvmbboref:
+                f.write(csvmbboref[i])
+            else:         
+                f.write("{},,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,1,0,0,0,0,0\n".format(i)) 
         f.write(",,,,,,,,\n,,,,,,,,\n")                                      
         
