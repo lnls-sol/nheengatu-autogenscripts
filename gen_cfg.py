@@ -53,21 +53,33 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
     if(fname == "scaler"): #SCALER
         for key in pins.keys():
             if key in csv:
-                tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                if (csv[key]['DISABLE'] == '1'):
+                    print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                    continue
+                else:
+                    tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
             else:
                 print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))              
     else: # Waveform
         if (fname == "waveform"):
             for indx, key in enumerate(pins.keys()):
                 if key in csv:
-                    tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
+                    if (csv[key]['DISABLE'] == '1'):
+                        print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                        continue
+                    else:                
+                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
                 else:
                     print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))                      
         else: # MBBI
             if (fname == "mbbi"):
                 for indx, key in enumerate(pins.keys()):
                     if key in csv:
-                        tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                        if (csv[key]['DISABLE'] == '1'):
+                            print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                            continue
+                        else:                    
+                            tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                 key             , dtype           , csv[key]['SCAN'], \
                                                 csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
                                                 csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
@@ -92,7 +104,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                 if (fname == "mbbo"):
                     for indx, key in enumerate(pins.keys()):
                         if key in csv:
-                            tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                            if (csv[key]['DISABLE'] == '1'):
+                                print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                                continue
+                            else:                        
+                                tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                     key             , dtype           , \
                                                     csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
                                                     csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
@@ -119,7 +135,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                         if (key == 'BI0'):
                             continue
                         if key in csv:
-                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                            if (csv[key]['DISABLE'] == '1'):
+                                print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                                continue
+                            else:                        
+                                tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
                             if ( not csv[key]['EQ']):
                                 print(colored("WARNING: EQ of {0} is empty. Is this intentional?".format(key), 'red'))
                         else:
@@ -632,6 +652,7 @@ if not (args.extract) :
                 #    0            1          2              3               4                   5
                 csvai[lineSplit[0]]['EQ'] = lineSplit[1]
                 csvai[lineSplit[0]]['DESC'] = lineSplit[2]
+                csvai[lineSplit[0]]['DISABLE'] = lineSplit[6]
                 result = re.search('FXP_', lineSplit[0])
                 if (result is not None):
                     try:
@@ -654,7 +675,8 @@ if not (args.extract) :
                     csvao[lineSplit[0]]['DESC'] = lineSplit[2]
                     csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
                     csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
-                    csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
+                    csvao[lineSplit[0]]['INIT VAL'] = int(lineSplit[8]) 
+                    csvao[lineSplit[0]]['DISABLE'] = lineSplit[9]
                     result = re.search('FXP_', lineSplit[0])
                     if (result is not None): 
                         try:                   
@@ -674,6 +696,7 @@ if not (args.extract) :
                         #    0            1          2             
                         csvbi[lineSplit[0]]['EQ'] = lineSplit[1]
                         csvbi[lineSplit[0]]['DESC'] = lineSplit[2]
+                        csvbi[lineSplit[0]]['DISABLE'] = lineSplit[3]
                     else: 
                         if (current == 'BO'):
                             #BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE
@@ -682,7 +705,8 @@ if not (args.extract) :
                             csvbo[lineSplit[0]]['DESC'] = lineSplit[2]   
                             csvbo[lineSplit[0]]['AUTOSAVE']   = int(lineSplit[3])
                             csvbo[lineSplit[0]]['INITIALIZE'] = int(lineSplit[4]) 
-                            csvbo[lineSplit[0]]['INIT VAL'] = int(lineSplit[5])                             
+                            csvbo[lineSplit[0]]['INIT VAL'] = int(lineSplit[5])  
+                            csvbo[lineSplit[0]]['DISABLE'] = lineSplit[6]                            
                         else: 
                             if (current == 'WAVEFORM'):
                                 #WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE
@@ -690,12 +714,14 @@ if not (args.extract) :
                                 csvwf[lineSplit[0]]['EQ'] = lineSplit[1]
                                 csvwf[lineSplit[0]]['DESC'] = lineSplit[2]
                                 csvwf[lineSplit[0]]['SIZE'] = int(lineSplit[3])
+                                csvwf[lineSplit[0]]['DISABLE'] = lineSplit[4]
                             else: 
                                 if (current == 'SCALER'):
                                     #SCALER INI NAME,SCALER DB NAME,SCALER DESCRIPTION 
                                     #    0                   1              2            
                                     csvslr[lineSplit[0]]['EQ'] = lineSplit[1]
                                     csvslr[lineSplit[0]]['DESC'] = lineSplit[2]
+                                    csvslr[lineSplit[0]]['DISABLE'] = lineSplit[3]
                                 else:
                                     if (current == 'MBBI'):
                                         csvmbbi[lineSplit[0]]['EQ'] = lineSplit[1]
@@ -751,6 +777,7 @@ if not (args.extract) :
                                         csvmbbi[lineSplit[0]]['COSV'] = lineSplit[51]
                                         csvmbbi[lineSplit[0]]['UNSV'] = lineSplit[52]
                                         csvmbbi[lineSplit[0]]['SCAN'] = lineSplit[53]
+                                        csvmbbi[lineSplit[0]]['DISABLE'] = lineSplit[54]
                                         
                                     else:
                                         if (current == 'MBBO'):
@@ -810,6 +837,7 @@ if not (args.extract) :
                                             csvmbbo[lineSplit[0]]['UNSV'] = lineSplit[54]
                                             csvmbbo[lineSplit[0]]['INITIALIZE'] = lineSplit[55]
                                             csvmbbo[lineSplit[0]]['INIT VAL'] = lineSplit[56]
+                                            csvmbbo[lineSplit[0]]['DISABLE'] = lineSplit[57]
                                             
                                         else:
                                             print("Could not classify data on line {0} in *.csv file".format(index))
@@ -839,7 +867,7 @@ if not (args.extract) :
         waveformNamesDict = { waveformNameList[i] : '' for i in range(0, len(waveformNameList) ) }
         printToCFGFile(f, 'WAVEFORMS', waveformNamesDict, csvwf, 1)        
         for waveform in waveforms:
-            printToCFGFile(f, waveform, waveforms[waveform])                                                             
+            printToCFGFile(f, waveform, waveforms[waveform], dict(), 0)                                                             
 
     # generate req file
     with open("{}/crioioc.req".format(args.dst) , "w") as f:
@@ -988,10 +1016,8 @@ else:
     
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
-        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)\n") 
+        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"Disable\n") 
         result = None
-        
-
         
               
         for i in list(aiaddr.keys()):
@@ -1005,40 +1031,40 @@ else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:
-                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm*3+"\n")   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm+"0\n")   
             else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:            
-                    f.write("{}".format(i)+dlm*8+"\n")   
+                    f.write("{}".format(i)+dlm*6+"0\n")   
         f.write(""+dlm*8+"\n"+dlm*8+"\n")  
         
         
-        f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION\n") 
+        f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION"+dlm+"Disable\n") 
         for i in list(biaddr.keys()):
             if (i != "BI0"):
                 if i in csvbiref:
                     f.write(csvbiref[i])
                 else: 
-                    f.write("{}".format(i)+dlm*7+"\n") 
+                    f.write("{}".format(i)+dlm*3+"0\n") 
                     
         for i in bidict.values():
             if i in csvbiref:
                 f.write(csvbiref[i])
             else:
-                f.write("{}".format(i)+dlm*8+"\n")  
+                f.write("{}".format(i)+dlm*3+"0\n")  
                            
         f.write(dlm*8+"\n"+dlm*8+"\n")       
                  
-        f.write("BO INI NAME"+dlm+"BO SUB-EQUIPMENT NAME"+dlm+"BO DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL\n") 
+        f.write("BO INI NAME"+dlm+"BO SUB-EQUIPMENT NAME"+dlm+"BO DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
         for i in list(boaddr.keys()):
             if i in csvboref:
                 f.write(csvboref[i])
             else:        
-                f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"\n") 
+                f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")   
 
-        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL\n") 
+        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
         for i in list(aoaddr.keys()):
             for j in list(scalers.keys()):
                 result = None
@@ -1049,44 +1075,44 @@ else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:              
-                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"64"+dlm+"0"+dlm+"0"+dlm+"0\n")   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"64"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0\n")   
             else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:             
-                    f.write("{}".format(i)+dlm*6+"0"+dlm+"0"+dlm+"0\n") 
+                    f.write("{}".format(i)+dlm*6+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
         f.write(dlm+"\n"+dlm*8+"\n")     
 
-        f.write("SCALER INI NAME"+dlm+"SCALER EQUIPMENT NAME"+dlm+"SCALER DESCRIPTION\n") 
+        f.write("SCALER INI NAME"+dlm+"SCALER EQUIPMENT NAME"+dlm+"SCALER DESCRIPTION"+dlm+"Disable\n") 
         for i in list(scalers.keys()):
             if i in csvslrref:
                 f.write(csvslrref[i])
             else:        
-                f.write("{}".format(i)+dlm*8+"\n") 
-        f.write(dlm+"\n"+dlm+"\n")   
+                f.write("{}".format(i)+dlm*3+"0\n") 
+        f.write(dlm*8+"\n"+dlm*8+"\n")   
 
-        f.write("WAVEFORM INI NAME"+dlm+"WAVEFORM SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" SIZE\n") 
+        f.write("WAVEFORM INI NAME"+dlm+"WAVEFORM SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" SIZE"+dlm+"Disable\n") 
         for i in list(waveforms.keys()):
             if i in csvwfref:
                 f.write(csvwfref[i])
             else:         
-                f.write("{0}".format(i, waveforms[i]['Size'])+dlm*3+"{1}\n")  
+                f.write(("{0}"+dlm*3+"{1}"+dlm+"0\n").format(i, waveforms[i]['Size']))  
         f.write(dlm*8+"\n"+dlm*8+"\n")     
         
-        f.write("MBBI INI NAME"+dlm+"MBBI SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" COSV"+dlm+" UNSV"+dlm+" SCAN \n") 
+        f.write("MBBI INI NAME"+dlm+"MBBI SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" COSV"+dlm+" UNSV"+dlm+" SCAN"+dlm+"Disable\n") 
         for i in list(mbbiaddr.keys()):
             if i in csvmbbiref:
                 f.write(csvmbbiref[i])
             else:         
-                f.write("{}.format(i)"+dlm+"0"+dlm+"INVALID"+dlm*2
-+"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"0"+dlm+"0"+dlm+".1 second\n") 
+                f.write("{}".format(i)+dlm*4+"0"+dlm+"INVALID"+dlm*2
++"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"0"+dlm+"0"+dlm+".1 second"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")      
         
-        f.write("MBBO INI NAME"+dlm+"MBBO SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" IVOA"+dlm+" IVOV"+dlm+" COSV"+dlm+" UNSV"+dlm+" INITIALIZE"+dlm+" INIT VAL \n") 
+        f.write("MBBO INI NAME"+dlm+"MBBO SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" IVOA"+dlm+" IVOV"+dlm+" COSV"+dlm+" UNSV"+dlm+" INITIALIZE"+dlm+" INIT VAL"+dlm+"Disable\n") 
         for i in list(mbboaddr.keys()):
             if i in csvmbboref:
                 f.write(csvmbboref[i])
             else:         
-                f.write("{}".format(i)+dlm*4+"0"+dlm+"INVALID"+dlm*2+"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"1"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
+                f.write("{}".format(i)+dlm*4+"0"+dlm+"INVALID"+dlm*2+"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"1"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")                                      
         
