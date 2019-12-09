@@ -865,7 +865,7 @@ if not (args.extract) :
     tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
     tplbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
     tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, FREQ, PIN, DESC}}\n'
-    tplsclrbdy = '{{\"{0}", \"'+args.loc+'", \"{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
+    tplsclrbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
     tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
     tplwfbdy = '{{\"{0}", \"'+args.loc+'","'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\"}}\n'
     
