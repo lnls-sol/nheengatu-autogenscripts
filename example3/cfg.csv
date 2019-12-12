@@ -1,0 +1,72 @@
+AI INI NAME,AI SUB-EQUIPMENT NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP),Disable
+RT_I08_AI_d7,,,,,,0
+FXP_fxp_AnalogOutput2_SCALER,,,1,64,32,0
+FXP_fxp_AnalogOutput1_SCALER,,,1,64,32,0
+RT_U32_AI_d35,,,,,,0
+RT_U08_AI_d27,,,,,,0
+RT_U16_AI_d31,,,,,,0
+RT_I64_AI_d19,,,,,,0
+RT_U64_AI_d38,,,,,,0
+FXP_fxp_AnalogOutput0_SCALER,,,1,64,32,0
+RT_I16_AI_d11,,,,,,0
+RT_I32_AI_d15,,,,,,0
+FXP_fxp_AnalogOutput3_SCALER,,,1,64,32,0
+RT_SGL_AI_d23,,,,,,0
+,,,,,,,,
+,,,,,,,,
+BI INI NAME,BI SUB-EQUIPMENT NAME,BI DESCRIPTION,Disable
+BI_led3,SBI3,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+BI_led2,SBI2,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+BI_led0,SBI0,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+BI_led1,SBI1,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+DI0,VBI0,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+DI1,VBI1,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+DI2,VBI2,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+DI3,VBI3,,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+BO INI NAME,BO SUB-EQUIPMENT NAME,BO DESCRIPTION, AUTOSAVE,INITIALIZE,INIT VAL,Disable
+BO2,BO2,Description,0,0,0,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+BO3,BO3,,0,0,0,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+BO0,BO0,,0,0,0,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+BO1,BO1,,0,0,0,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+AO INI NAME,AO SUB-EQUIPMENT NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP),AUTOSAVE,INITIALIZE,INIT VAL,Disable
+RT_I08_AO_d6,,,,,,0,0,0,0
+RT_I64_AO_d18,,,,,,0,0,0,0
+RT_I16_AO_d10,,,,,,0,0,0,0
+RT_I32_AO_d14,,,,,,0,0,0,0
+FXP_fxp_ShiftLeft_SCALER,,,1,64,64,0,0,0,0
+RT_U64_AO_d37,,,,,,0,0,0,0
+RT_U32_AO_d34,,,,,,0,0,0,0
+RT_U08_AO_d26,,,,,,0,0,0,0
+RT_U16_AO_d30,,,,,,0,0,0,0
+RT_SGL_AO_d22,,,,,,0,0,0,0
+,
+,,,,,,,,
+SCALER INI NAME,SCALER EQUIPMENT NAME,SCALER DESCRIPTION,Disable
+SCALER,,,0
+,,,,,,,,
+,,,,,,,,
+WAVEFORM INI NAME,WAVEFORM SUB-EQUIPMENT NAME, DESCRIPTION, SIZE,Disable
+RT_I16_WF_d12,,,3,0
+RT_I32_WF_d16,,,3,0
+RT_I64_WF_d20,,,3,0
+RT_U64_WF_d39,,,3,0
+RT_U32_WF_d36,,,3,0
+RT_I08_WF_d8,,,3,0
+RT_DBL_WF_d4,,,4,0
+RT_U08_WF_d28,,,3,0
+RT_SGL_WF_d24,,,3,0
+RT_U16_WF_d32,,,3,0
+,,,,,,,,
+,,,,,,,,
+MBBI INI NAME,MBBI SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV, SCAN,Disable
+RT_MBI_d40,,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,0,0,.1 second,0
+,,,,,,,,
+,,,,,,,,
+MBBO INI NAME,MBBO SUB-EQUIPMENT NAME, DESCRIPTION, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL, EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, INITIALIZE, INIT VAL,Disable
+RT_MBO_d41,,,,0,INVALID,,1,INVALID,,2,INVALID,,3,INVALID,,4,INVALID,,5,INVALID,,6,INVALID,,7,INVALID,,8,INVALID,,9,INVALID,,10,INVALID,,11,INVALID,,12,INVALID,,13,INVALID,,14,INVALID,,15,INVALID,1,0,0,0,0,0,0
+,,,,,,,,
+,,,,,,,,
