@@ -172,8 +172,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                             else:
                                 if not csv[key]['EQ']:
                                     print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
-                                else:                                                    
-                                    tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                                else: 
+                                    if (fname == "ai" or fname == "bi"):                                                   
+                                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'])
+                                    else:
+                                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
                         else:
                             print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))
             
@@ -310,15 +313,15 @@ parser.add_argument("--extract", help="Extract data from headerfile", action='st
 parser.add_argument("--ip", help="Destination IP of the CRIO. Default is <127.0.0.1>", default = '127.0.0.1')
 parser.add_argument("--smfname", help="Shared memory file path and name", default = '/labview_linux_sm')
 parser.add_argument("--smsize", help="Shared memory size. Default is <4096>", default = '4096')
-parser.add_argument("--aikey", help="AI keyword that any AI variable will start with in the headerfile. Default is <AI>", default = 'AI')
-parser.add_argument("--aokey", help="AO keyword that any AO variable will start with in the headerfile Default is <AO>", default = 'AO')
-parser.add_argument("--bokey", help="BO keyword that any BO variable will start with in the headerfile. Default is <BO>", default = 'BO')
-parser.add_argument("--bikey", help="BI keyword that any BI variable will start with in the headerfile. Default is <BI>", default = 'BI')
-parser.add_argument("--mbbikey", help="mbbi keyword that any mbbi variable will start with in the headerfile. Default is <MBBI>", default = 'MBBI')
-parser.add_argument("--mbbokey", help="mbbo keyword that any mbbo variable will start with in the headerfile. Default is <MBBO>", default = 'MBBO')
-parser.add_argument("--fxpkey", help="Fixedpoint keyword that any AI/AO variable will have after that AI/AO keyword in the headerfile. Default is <FXP>", default = 'FXP')
+parser.add_argument("--aikey", help="AI keyword that any AI variable will start with in the headerfile. Default is <AI> (case-insensitive)", default = 'AI')
+parser.add_argument("--aokey", help="AO keyword that any AO variable will start with in the headerfile Default is <AO>(case-insensitive)", default = 'AO')
+parser.add_argument("--bokey", help="BO keyword that any BO variable will start with in the headerfile. Default is <BO>(case-insensitive)", default = 'BO')
+parser.add_argument("--bikey", help="BI keyword that any BI variable will start with in the headerfile. Default is <BI>(case-insensitive)", default = 'BI')
+parser.add_argument("--mbbikey", help="mbbi keyword that any mbbi variable will start with in the headerfile. Default is <MBBI>(case-insensitive)", default = 'MBBI')
+parser.add_argument("--mbbokey", help="mbbo keyword that any mbbo variable will start with in the headerfile. Default is <MBBO>(case-insensitive)", default = 'MBBO')
+parser.add_argument("--fxpkey", help="Fixedpoint keyword that any AI/AO variable will start with in the headerfile. Default is <FXP>(case-insensitive)", default = 'FXP')
 parser.add_argument("--scalerkey", help="Scaler keyword that any Scaler variable will be followed with in the headerfile. Default is <SCALER>", default = 'SCALER')
-parser.add_argument("--waveformkey",help="Waveform keyword that any Waveform variable will be followed with in the headerfile. Default is <WF>", default = 'WF')
+parser.add_argument("--waveformkey",help="Waveform keyword that any Waveform will start with in the headerfile. Default is  Default is <WF>(case-insensitive)", default = 'WF')
 parser.add_argument("--beamline", help="Name of the beamline (for template file generation). Default is <SOL>", default = 'SOL')
 parser.add_argument("--bidtyp", help="DTYPE of BI record", default = 'CrioBI')
 parser.add_argument("--aidtyp", help="DTYPE of AI record", default = 'CrioAI')
@@ -466,7 +469,7 @@ for line in lines:
                                 fpgavarCount += 1                    
 
     # Extracting waveform data
-    result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)_('+args.waveformkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+    result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)_('+args.waveformkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
     if (result is not None):
         waveforms[result.group(2)]['Address']=(result.group(3))
         if (result.group(1) == 'I8'):
@@ -496,7 +499,7 @@ for line in lines:
                                     csvwf[result.group(2)]['TypeEPICS'] = 'DOUBLE'                  
         fpgavarCount += 1
     else:
-        result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)Size_('+args.waveformkey+'[a-zA-Z0-9_]*) = ([0-9]+)', line)
+        result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)Size_('+args.waveformkey+'[a-zA-Z0-9_]*) = ([0-9]+)', line, flags=re.IGNORECASE)
         if (result is not None):
             waveforms[result.group(2)]['Size']=(result.group(3))
             fpgavarCount += 1   
@@ -514,9 +517,9 @@ for line in lines:
             copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/{1}".format(args.dst,result.group(1)))
             copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/reference/{1}".format(args.dst,result.group(1)))
         else:
-            # Extracting BI, BO, AI, AO, AI FXP and AO FXP
+            # Extracting BI, BO, AI, AO, AI FXP, AO FXP, MBBI, and MBBO
             #Extracting BI Vector if exists
-            result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+            result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
             if (result is not None):
                 biaddr["BI_VECTOR"]=(result.group(2))
                 if (int(args.binum) != 0):
@@ -526,49 +529,49 @@ for line in lines:
                     print(colored("WARNING: Found BI vector in header file, and yet binum input parameter was set to 0. Is this intentional?",'red')) 
             else:
                 # Extract boolean indicator (BI)
-                result = re.search('IndicatorBool_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                result = re.search('IndicatorBool_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                 if (result is not None):
                     biaddr[result.group(1)]=(result.group(2))
                     fpgavarCount += 1
                 else:
                     # Extract Single precision floating point indicator (AI)
-                    result = re.search('IndicatorSgl_('+args.aikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                    result = re.search('IndicatorSgl_('+args.aikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                     if (result is not None):
                         aiaddr[result.group(1)]=(result.group(2))
                         fpgavarCount += 1                
                     else:
                         # Extract Single precision floating point control (AO)
-                        result = re.search('ControlSgl_('+args.aokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                        result = re.search('ControlSgl_('+args.aokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                         if (result is not None):
                             aoaddr[result.group(1)]=(result.group(2))         
                             fpgavarCount += 1
                         else:
                             # Extract boolean control (BO)
-                            result = re.search('ControlBool_('+args.bokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                            result = re.search('ControlBool_('+args.bokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                             if (result is not None):
                                 boaddr[result.group(1)]=(result.group(2))                              
                                 fpgavarCount += 1
                             else:
                                 # Extract fixed point indicator (AI)
-                                result = re.search('IndicatorU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                                result = re.search('IndicatorU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                 if (result is not None):
                                     aiaddr["FXP_"+result.group(1)]=(result.group(3))
                                     fpgavarCount += 1   
                                 else:
                                     # Extract fixed point control (AO)
-                                    result = re.search('ControlU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                                    result = re.search('ControlU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                     if (result is not None):
                                         aoaddr["FXP_"+result.group(1)]=(result.group(3))
                                         fpgavarCount += 1              
                                     else:
                                         # Extract MBB indicator (MBBO)
-                                        result = re.search('IndicatorU16_('+args.mbbikey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                                        result = re.search('IndicatorU16_('+args.mbbikey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                         if (result is not None):
                                             mbbiaddr[result.group(1)]=(result.group(3))
                                             fpgavarCount += 1   
                                         else:
                                             # Extract MBB control (MBBI)
-                                            result = re.search('ControlU16_('+args.mbbokey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line)
+                                            result = re.search('ControlU16_('+args.mbbokey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                             if (result is not None):
                                                 mbboaddr[result.group(1)]=(result.group(3))
                                                 fpgavarCount += 1                                         
@@ -708,7 +711,8 @@ if not (args.extract) :
                 #    0            1          2              3               4                   5
                 csvai[lineSplit[0]]['EQ'] = lineSplit[1]
                 csvai[lineSplit[0]]['DESC'] = lineSplit[2]
-                csvai[lineSplit[0]]['DISABLE'] = lineSplit[6]
+                csvai[lineSplit[0]]['SCAN'] = lineSplit[6]
+                csvai[lineSplit[0]]['DISABLE'] = lineSplit[7]
                 result = re.search('FXP_', lineSplit[0])
                 if (result is not None):
                     try:
@@ -752,7 +756,8 @@ if not (args.extract) :
                         #    0            1          2             
                         csvbi[lineSplit[0]]['EQ'] = lineSplit[1]
                         csvbi[lineSplit[0]]['DESC'] = lineSplit[2]
-                        csvbi[lineSplit[0]]['DISABLE'] = lineSplit[3]
+                        csvbi[lineSplit[0]]['SCAN'] = lineSplit[3]
+                        csvbi[lineSplit[0]]['DISABLE'] = lineSplit[4]
                     else: 
                         if (current == 'BO'):
                             #BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE
@@ -946,6 +951,8 @@ if not (args.extract) :
         f.write('dbLoadRecords \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.loc+":"+args.crio+":REC:\"\n")  
 
     #template definitions
+    tplhdri = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
+    tplbdyi = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
     tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
     tplbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
     tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, FREQ, PIN, DESC}}\n'
@@ -978,8 +985,8 @@ TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n
     bidict_inverted = {v: k for k, v in bidict.items()} 
     bidict_inverted = {**biaddr, **bidict_inverted}
     buildSub(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao',  csvao)
-    buildSub(tplhdr, tplbdy, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', csvai)
-    buildSub(tplhdr, tplbdy, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', csvbi)
+    buildSub(tplhdri, tplbdyi, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', csvai)
+    buildSub(tplhdri, tplbdyi, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', csvbi)
     buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', csvbo)
     buildSub(tplmbbihdr, tplmbbibdy, args.beamline, args.mbbidtyp, mbbiaddr, "devMBBICRIO.db.template", 'mbbi', csvmbbi)
     buildSub(tplmbbohdr, tplmbbobdy, args.beamline, args.mbbodtyp, mbboaddr, "devMBBOCRIO.db.template", 'mbbo', csvmbbo)
@@ -1072,7 +1079,7 @@ else:
     
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
-        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"Disable\n") 
+        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"SCAN"+dlm+"Disable\n") 
         result = None
         
               
@@ -1087,28 +1094,28 @@ else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:
-                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm+"0\n")   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm+".1 second"+dlm+"0\n")   
             else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:            
-                    f.write("{}".format(i)+dlm*6+"0\n")   
+                    f.write("{}".format(i)+dlm*6+".1 second"+dlm+"0\n")   
         f.write(""+dlm*8+"\n"+dlm*8+"\n")  
         
         
-        f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION"+dlm+"Disable\n") 
+        f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION"+dlm+"SCAN"+dlm+"Disable\n") 
         for i in list(biaddr.keys()):
             if (i != "BI_VECTOR"):
                 if i in csvbiref:
                     f.write(csvbiref[i])
                 else: 
-                    f.write("{}".format(i)+dlm*3+"0\n") 
+                    f.write("{}".format(i)+dlm*3+".1 second"+dlm+"0\n") 
                     
         for i in bidict.values():
             if i in csvbiref:
                 f.write(csvbiref[i])
             else:
-                f.write("{}".format(i)+dlm*3+"0\n")  
+                f.write("{}".format(i)+dlm*3+".1 second"+dlm+"0\n")  
                            
         f.write(dlm*8+"\n"+dlm*8+"\n")       
                  
