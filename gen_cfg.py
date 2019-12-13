@@ -93,7 +93,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                         if not csv[key]['EQ']:
                             print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
                         else:                                   
-                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
+                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'], csv[key]['SCAN'])
                 else:
                     print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))                      
         else: # MBBI
@@ -414,14 +414,19 @@ if not (args.extract) :
     callCommand = " ".join(sys.argv)
     with open(args.dst+"/reference/command.sh", "w") as f:
         f.write("#!/bin/bash\n")  
-        f.write(callCommand)        
-    copyfile(args.src+"/"+args.cfgcsv, args.dst+"/reference/"+args.cfgcsv)
+        f.write(callCommand) 
+    if (os.path.isfile(args.src+"/"+args.cfgcsv)):
+        copyfile(args.src+"/"+args.cfgcsv, args.dst+"/reference/"+args.cfgcsv)
+    else :
+        print(colored('{0} file not available while --extract is not activated.'.format(args.cfgcsv),'red'))
+        sys.exit()               
+
     shutil.copy2(headerFilesFound[0], args.dst+"/reference")
     if (args.useSM):
         if (os.path.isfile(args.src+"/RT.list")):
             copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
         else :
-            print('RT.list file not available while -u switch activated.')
+            print(colored('RT.list file not available while -u switch activated.', 'red'))
             sys.exit()
 else:
     if(os.path.isfile(args.src+"/"+args.cfgcsv)):
@@ -775,7 +780,8 @@ if not (args.extract) :
                                 csvwf[lineSplit[0]]['EQ'] = lineSplit[1]
                                 csvwf[lineSplit[0]]['DESC'] = lineSplit[2]
                                 csvwf[lineSplit[0]]['SIZE'] = int(lineSplit[3])
-                                csvwf[lineSplit[0]]['DISABLE'] = lineSplit[4]
+                                csvwf[lineSplit[0]]['SCAN'] = lineSplit[4]
+                                csvwf[lineSplit[0]]['DISABLE'] = lineSplit[5]
                             else: 
                                 if (current == 'SCALER'):
                                     #SCALER INI NAME,SCALER DB NAME,SCALER DESCRIPTION 
@@ -957,8 +963,8 @@ if not (args.extract) :
     tplbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
     tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, FREQ, PIN, DESC}}\n'
     tplsclrbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
-    tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, FTVL, NELM, DESC}}\n'
-    tplwfbdy = '{{\"{0}", \"'+args.loc+'","'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\"}}\n'
+    tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, FTVL, NELM, DESC, SCAN}}\n'
+    tplwfbdy = '{{\"{0}", \"'+args.loc+'","'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"}}\n'
     
     tplmbbohdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DESC, PIN, DTYP, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL,\
 THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL,\
@@ -1154,12 +1160,12 @@ else:
                 f.write("{}".format(i)+dlm*3+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")   
 
-        f.write("WAVEFORM INI NAME"+dlm+"WAVEFORM SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" SIZE"+dlm+"Disable\n") 
+        f.write("WAVEFORM INI NAME"+dlm+"WAVEFORM SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" SIZE"+dlm+"SCAN"+dlm+"Disable\n") 
         for i in list(waveforms.keys()):
             if i in csvwfref:
                 f.write(csvwfref[i])
             else:         
-                f.write(("{0}"+dlm*3+"{1}"+dlm+"0\n").format(i, waveforms[i]['Size']))  
+                f.write(("{0}"+dlm*3+"{1}"+dlm+".1 second"+dlm+"0\n").format(i, waveforms[i]['Size']))  
         f.write(dlm*8+"\n"+dlm*8+"\n")     
         
         f.write("MBBI INI NAME"+dlm+"MBBI SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" COSV"+dlm+" UNSV"+dlm+" SCAN"+dlm+"Disable\n") 
