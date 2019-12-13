@@ -81,7 +81,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                     else:
                         tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
             else:
-                print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))              
+                print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))              
     else: # Waveform
         if (fname == "waveform"):
             for indx, key in enumerate(pins.keys()):
@@ -95,7 +95,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                         else:                                   
                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'], csv[key]['SCAN'])
                 else:
-                    print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))                      
+                    print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))                      
         else: # MBBI
             if (fname == "mbbi"):
                 for indx, key in enumerate(pins.keys()):
@@ -127,7 +127,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                                 csv[key]['FFST'], csv[key]['FFVL'], csv[key]['FFSV'], \
                                                 csv[key]['COSV'], csv[key]['UNSV'] )
                     else:
-                        print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))        
+                        print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))        
             else: # MBBO
                 if (fname == "mbbo"):
                     for indx, key in enumerate(pins.keys()):
@@ -160,7 +160,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                                     csv[key]['IVOA'], csv[key]['IVOV'], \
                                                     csv[key]['COSV'], csv[key]['UNSV'] )
                         else:
-                            print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))                        
+                            print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))                        
                 else: #AO, AI, BO, BI                  
                     for indx, key in enumerate(pins.keys()):
                         if (key == 'BI_VECTOR'):
@@ -178,7 +178,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                     else:
                                         tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
                         else:
-                            print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))
+                            print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
             
 
     tpls = tpls + "\n}"
