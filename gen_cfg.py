@@ -54,17 +54,17 @@ def printToCFGFile(f, cfgkey, items, csv, use_csv):
     f.write("\n\n")     
 
 
-def printToReqFile(f, keys, csv, bl, eq):
+def printToReqFile(f, keys, csv, bl, eq, loc):
     for key,value in keys.items():
         if key in csv:
             if (csv[key]['AUTOSAVE'] == 1):
-                f.write("{0}:{1}:{2}\n".format(bl, eq, csv[key]['EQ']))   
+                f.write("{0}:{3}:{1}:{2}\n".format(bl, eq, csv[key]['EQ'], loc))   
 
-def printToInitFile(f, keys, csv, bl, eq):
+def printToInitFile(f, keys, csv, bl, eq, loc):
     for key,value in keys.items():
         if key in csv:
             if (csv[key]['INITIALIZE'] == 1):
-                f.write("dbpf {0}:{1}:{2} {3}\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL']))   
+                f.write("dbpf {0}:{4}:{1}:{2} {3}\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL'], loc))   
             
 
 def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
@@ -76,7 +76,10 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                     print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
                     continue
                 else:
-                    tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                    if not csv[key]['EQ']:
+                        print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
+                    else:
+                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
             else:
                 print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))              
     else: # Waveform
@@ -86,8 +89,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                     if (csv[key]['DISABLE'] == '1'):
                         print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
                         continue
-                    else:                
-                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
+                    else: 
+                        if not csv[key]['EQ']:
+                            print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
+                        else:                                   
+                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'])
                 else:
                     print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))                      
         else: # MBBI
@@ -97,8 +103,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                         if (csv[key]['DISABLE'] == '1'):
                             print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
                             continue
-                        else:                    
-                            tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                        else: 
+                            if not csv[key]['EQ']:
+                                print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
+                            else:                                           
+                                tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                 key             , dtype           , csv[key]['SCAN'], \
                                                 csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
                                                 csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
@@ -126,8 +135,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                             if (csv[key]['DISABLE'] == '1'):
                                 print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
                                 continue
-                            else:                        
-                                tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
+                            else:
+                                if not csv[key]['EQ']:
+                                    print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
+                                else:                                                    
+                                    tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                     key             , dtype           , \
                                                     csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
                                                     csv[key]['ONST'], csv[key]['ONVL'], csv[key]['ONSV'], \
@@ -157,10 +169,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                             if (csv[key]['DISABLE'] == '1'):
                                 print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
                                 continue
-                            else:                        
-                                tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
-                            if ( not csv[key]['EQ']):
-                                print(colored("WARNING: EQ of {0} is empty. Is this intentional?".format(key), 'red'))
+                            else:
+                                if not csv[key]['EQ']:
+                                    print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
+                                else:                                                    
+                                    tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
                         else:
                             print(colored("WARNING: Found {0} in header but not in csv. Is this intentional?".format(key), 'red'))
             
@@ -706,8 +719,8 @@ if not (args.extract) :
                         fxps[lineSplit[0]]['Word Length'] = int(lineSplit[4])
                         fxps[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])
                     except (ValueError) as err:
-                        print ("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1))
-                        print(err)
+                        print (colored("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1), 'red'))
+                        print(colored(err, 'red'))
                         sys.exit()  
                         
             else: 
@@ -718,7 +731,7 @@ if not (args.extract) :
                     csvao[lineSplit[0]]['DESC'] = lineSplit[2]
                     csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
                     csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
-                    csvao[lineSplit[0]]['INIT VAL'] = int(lineSplit[8]) 
+                    csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
                     csvao[lineSplit[0]]['DISABLE'] = lineSplit[9]
                     result = re.search('FXP_', lineSplit[0])
                     if (result is not None): 
@@ -730,8 +743,8 @@ if not (args.extract) :
                             fxps[lineSplit[0]]['Word Length'] = int(lineSplit[4])
                             fxps[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])                              
                         except (ValueError) as err:
-                            print ("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1))
-                            print(err)
+                            print (colored("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1), 'red'))
+                            print(colored(err, 'red'))
                             sys.exit()                            
                 else: 
                     if (current == 'BI'):
@@ -915,16 +928,16 @@ if not (args.extract) :
     # generate req file
     with open("{}/crioioc.req".format(args.dst) , "w") as f:
         print("Generating {}/crioioc.req".format(args.dst))
-        printToReqFile(f, boaddr, csvbo, args.beamline, args.crio)
-        printToReqFile(f, aoaddr, csvao, args.beamline, args.crio)
+        printToReqFile(f, boaddr, csvbo, args.beamline, args.crio, args.loc)
+        printToReqFile(f, aoaddr, csvao, args.beamline, args.crio, args.loc)
 
 
     # generate init-pv.cmd file
     with open("{}/init-pv.cmd".format(args.dst) , "w") as f:
         print("Generating {}/init-pv.cmd".format(args.dst))
-        printToInitFile(f, boaddr, csvbo, args.beamline, args.crio)
-        printToInitFile(f, aoaddr, csvao, args.beamline, args.crio)
-        printToInitFile(f, mbboaddr, csvmbbo, args.beamline, args.crio)
+        printToInitFile(f, boaddr, csvbo, args.beamline, args.crio, args.loc)
+        printToInitFile(f, aoaddr, csvao, args.beamline, args.crio, args.loc)
+        printToInitFile(f, mbboaddr, csvmbbo, args.beamline, args.crio, args.loc)
 
     # generate init-recsync.cmd file
     with open("{}/init-recsync.cmd".format(args.dst) , "w") as f:

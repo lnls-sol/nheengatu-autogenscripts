@@ -24,7 +24,7 @@
 /**
  * The signature of the FPGA bitfile.
  */
-static const char* const NiFpga_bool_test_Signature = "BCEFC2CA6F107120DA381B861940A752";
+static const char* const NiFpga_bool_test_Signature = "1E2A7CB38D9D581360F219E3BF5FBF4B";
 
 typedef enum
 {
@@ -49,12 +49,12 @@ typedef enum
 typedef enum
 {
    NiFpga_bool_test_IndicatorU64_BI_VECTOR = 0x18020,
-   NiFpga_bool_test_IndicatorU64_aifxp1 = 0x1809C,
-   NiFpga_bool_test_IndicatorU64_aifxp2 = 0x18094,
-   NiFpga_bool_test_IndicatorU64_aifxp3 = 0x1808C,
-   NiFpga_bool_test_IndicatorU64_aifxp4 = 0x18084,
-   NiFpga_bool_test_IndicatorU64_aifxp5 = 0x1807C,
-   NiFpga_bool_test_IndicatorU64_aifxp6 = 0x18074,
+   NiFpga_bool_test_IndicatorU64_FXP1 = 0x1809C,
+   NiFpga_bool_test_IndicatorU64_FXP2 = 0x18094,
+   NiFpga_bool_test_IndicatorU64_FXP3 = 0x1808C,
+   NiFpga_bool_test_IndicatorU64_FXP4 = 0x18084,
+   NiFpga_bool_test_IndicatorU64_FXP5 = 0x1807C,
+   NiFpga_bool_test_IndicatorU64_FXP6 = 0x18074,
    NiFpga_bool_test_IndicatorU64_fxp_AnalogOutput0_SCALER = 0x18034,
    NiFpga_bool_test_IndicatorU64_fxp_AnalogOutput1_SCALER = 0x18030,
    NiFpga_bool_test_IndicatorU64_fxp_AnalogOutput2_SCALER = 0x1802C,
@@ -88,12 +88,12 @@ typedef enum
 
 typedef enum
 {
-   NiFpga_bool_test_ControlU64_aofxp1 = 0x18070,
-   NiFpga_bool_test_ControlU64_aofxp2 = 0x1806C,
-   NiFpga_bool_test_ControlU64_aofxp3 = 0x18068,
-   NiFpga_bool_test_ControlU64_aofxp4 = 0x18064,
-   NiFpga_bool_test_ControlU64_aofxp5 = 0x18060,
-   NiFpga_bool_test_ControlU64_aofxp6 = 0x1805C,
+   NiFpga_bool_test_ControlU64_FXP1 = 0x18070,
+   NiFpga_bool_test_ControlU64_FXP2 = 0x1806C,
+   NiFpga_bool_test_ControlU64_FXP3 = 0x18068,
+   NiFpga_bool_test_ControlU64_FXP4 = 0x18064,
+   NiFpga_bool_test_ControlU64_FXP5 = 0x18060,
+   NiFpga_bool_test_ControlU64_FXP6 = 0x1805C,
    NiFpga_bool_test_ControlU64_fxp_ShiftLeft_SCALER = 0x1803C,
 } NiFpga_bool_test_ControlU64;
 
