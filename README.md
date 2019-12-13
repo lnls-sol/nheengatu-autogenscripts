@@ -22,6 +22,7 @@ FPGA C API generated header.
     $ ./gen_cfg.py -s ./gen_cfg_example/ -u --waveformkey waveform_ --binum 24
     $ ./gen_cfg.py -s ./gen_cfg_mbb_example/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u
     $ ./gen_cfg.py -s ./gen_cfg_example_9045/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u
+    $ ./gen_cfg.py --bikey BI_  --src example3/ --bokey BO --binum 4 -u --loc B --crio CRIO05
 
 
 ### Notes
