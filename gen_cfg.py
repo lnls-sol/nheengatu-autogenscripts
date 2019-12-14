@@ -36,6 +36,7 @@ from shutil import copyfile
 import glob
 import datetime
 from termcolor import colored
+from colored import fg, bg, attr
 import shutil
     
 ### HELPER FUNCTIONS
@@ -68,6 +69,7 @@ def printToInitFile(f, keys, csv, bl, eq, loc):
             
 
 def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
+    var_num = 0;
     tpls = tplhdr.format(dbtemplate)
     sorted_pins_keys = sorted (pins.keys())
     if(fname == "scaler"): #SCALER
@@ -81,6 +83,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                         print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
                     else:
                         tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                        var_num += 1
             else:
                 print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))              
     else: # Waveform
@@ -95,6 +98,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                             print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
                         else:                                   
                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['TypeEPICS'], csv[key]['SIZE'],csv[key]['DESC'], csv[key]['SCAN'])
+                            var_num += 1
                 else:
                     print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))                      
         else: # MBBI
@@ -107,7 +111,8 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                         else: 
                             if not csv[key]['EQ']:
                                 print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
-                            else:                                           
+                            else:
+                                var_num += 1                                           
                                 tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                 key             , dtype           , csv[key]['SCAN'], \
                                                 csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
@@ -139,7 +144,8 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                             else:
                                 if not csv[key]['EQ']:
                                     print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
-                                else:                                                    
+                                else:  
+                                    var_num += 1                                                  
                                     tpls = tpls + tplbdy.format(beamline        , csv[key]['EQ']  , csv[key]['DESC'], \
                                                     key             , dtype           , \
                                                     csv[key]['ZRST'], csv[key]['ZRVL'], csv[key]['ZRSV'], \
@@ -173,7 +179,8 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                             else:
                                 if not csv[key]['EQ']:
                                     print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
-                                else: 
+                                else:
+                                    var_num += 1 
                                     if (fname == "ai" or fname == "bi"):                                                   
                                         tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'])
                                     else:
@@ -183,8 +190,8 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
             
 
     tpls = tpls + "\n}"
+    print(colored ("Generated {}/{}.db.sub file with {} records".format(args.dst, fname, var_num), 'green'))
     with open("{}/{}.db.sub".format(args.dst, fname) , "w") as f:
-        print("Generating {}/{}.db.sub file".format(args.dst, fname))
         f.write(tpls)     
 
 
@@ -398,7 +405,7 @@ if not os.path.exists(args.src):
 headerFilesFound = glob.glob("{0}/*.h".format(args.src));
 if (len(headerFilesFound) > 1): 
     print(colored("Found {0} header files in {1} folder. Exclude others and try again.".format(len(headerFilesFound), args.src), 'red'))
-    print(headerFilesFound)
+    print(colored(headerFilesFound, 'red'))
     sys.exit()
 
 with open(headerFilesFound[0]) as f:
@@ -423,12 +430,13 @@ if not (args.extract) :
         sys.exit()               
 
     shutil.copy2(headerFilesFound[0], args.dst+"/reference")
-    if (args.useSM):
-        if (os.path.isfile(args.src+"/RT.list")):
-            copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
-        else :
-            print(colored('RT.list file not available while -u switch activated.', 'red'))
-            sys.exit()
+    
+if (args.useSM):
+    if (os.path.isfile(args.src+"/RT.list")):
+        copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
+    else :
+        print(colored('RT.list file not available while -u switch activated. Exiting...', 'red'))
+        sys.exit()
 else:
     if(os.path.isfile(args.src+"/"+args.cfgcsv)):
         copyfile(args.src+"/"+args.cfgcsv, args.src+"/cfg_old.csv")
@@ -585,9 +593,6 @@ for line in lines:
 #process RT variables if enabled
 
 if (args.useSM):
-    if (not os.path.isfile(args.src+"/RT.list")):
-        print('RT.list file not available while -u switch activated. exiting...')
-        sys.exit()
     rtlist = [rt.rstrip() for rt in open('{}/RT.list'.format(args.src))]
     for i, val in enumerate(rtlist):
         result = re.search('RT_MBI', val)
@@ -913,7 +918,7 @@ if not (args.extract) :
 
     # generate cfg.ini
     with open("{}/cfg.ini".format(args.dst) , "w") as f:
-        print("Generating {}/cfg.ini".format(args.dst))
+        print(colored ("Generating {}/cfg.ini".format(args.dst),'green'))
         f.write(header.format(datetime.datetime.now()))
         printToCFGFile(f, 'Settings', settings, dict(), 0)
         printToCFGFile(f, 'BIAddresses', biaddr, dict(), 0)
@@ -940,7 +945,7 @@ if not (args.extract) :
 
     # generate req file
     with open("{}/crioioc.req".format(args.dst) , "w") as f:
-        print("Generating {}/crioioc.req".format(args.dst))
+        print(colored ("Generating {}/crioioc.req".format(args.dst), 'green'))
         printToReqFile(f, boaddr, csvbo, args.beamline, args.crio, args.loc)
         printToReqFile(f, aoaddr, csvao, args.beamline, args.crio, args.loc)
         printToReqFile(f, mbboaddr, csvmbbo, args.beamline, args.crio, args.loc)
@@ -948,14 +953,14 @@ if not (args.extract) :
 
     # generate init-pv.cmd file
     with open("{}/init-pv.cmd".format(args.dst) , "w") as f:
-        print("Generating {}/init-pv.cmd".format(args.dst))
+        print(colored ("Generating {}/init-pv.cmd".format(args.dst), 'green'))
         printToInitFile(f, boaddr, csvbo, args.beamline, args.crio, args.loc)
         printToInitFile(f, aoaddr, csvao, args.beamline, args.crio, args.loc)
         printToInitFile(f, mbboaddr, csvmbbo, args.beamline, args.crio, args.loc)
 
     # generate init-recsync.cmd file
     with open("{}/init-recsync.cmd".format(args.dst) , "w") as f:
-        print("Generating {}/recsync-pv.cmd".format(args.dst))
+        print(colored ("Generating {}/recsync-pv.cmd".format(args.dst), 'green'))
         f.write("epicsEnvSet(\"IOCNAME\", \""+args.beamline+"-"+args.loc+"-"+args.crio+"\")\n")           
         f.write('dbLoadRecords \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.loc+":"+args.crio+":REC:\"\n")  
 
@@ -1002,7 +1007,7 @@ TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n
     buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', csvslr)
     buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', csvwf)
 
-    print("Check {0} folder, and modify the substitution files.".format(args.dst))
+    print("{0}{1} folder generated{2}".format(attr('bold'), args.dst, attr('reset')))
 
 else:
 
@@ -1093,13 +1098,11 @@ else:
         
               
         for i in list(sorted(aiaddr.keys())):
-            #print(i)
             for j in list(scalers.keys()):
                 result = re.search(j, i)
                 if (result is not None):
                     break
             if (result is not None):
-                #print(result)
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:

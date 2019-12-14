@@ -16,13 +16,14 @@ FPGA C API generated header.
     $ ./gen_cfg.py -s ./gen_cfg_example/ -u --waveformkey waveform_ --binum 24 --extract
     $ ./gen_cfg.py -s ./gen_cfg_mbb_example/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u --extract
     $ ./gen_cfg.py -s ./gen_cfg_example_9045/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u --extract
+    $ ./gen_cfg.py -s ./example3/  --bikey BI_ --bokey BO --binum 4 -u --loc A --crio CRIO06 --refcsv --extract
     
 ### cfg.ini and EPICS substitutions generation examples
 
     $ ./gen_cfg.py -s ./gen_cfg_example/ -u --waveformkey waveform_ --binum 24
     $ ./gen_cfg.py -s ./gen_cfg_mbb_example/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u
     $ ./gen_cfg.py -s ./gen_cfg_example_9045/ --mbbikey MBBI --mbbokey MBBO --crio CRIO5 --loc A -u
-    $ ./gen_cfg.py --bikey BI_  --src example3/ --bokey BO --binum 4 -u --loc B --crio CRIO05
+    $ ./gen_cfg.py --bikey BI_  --src example3/ --bokey BO --binum 4 -u --loc A --crio CRIO06
 
 
 ### Notes
