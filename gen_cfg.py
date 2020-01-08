@@ -413,6 +413,8 @@ with open(headerFilesFound[0]) as f:
 
     
 
+
+    
 # Prepare output folder
 if not (args.extract) : 
     if os.path.exists(args.dst):
@@ -430,10 +432,12 @@ if not (args.extract) :
         sys.exit()               
 
     shutil.copy2(headerFilesFound[0], args.dst+"/reference")
-    
+
+        
 if (args.useSM):
     if (os.path.isfile(args.src+"/RT.list")):
-        copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
+        if not (args.extract) : 
+            copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
     else :
         print(colored('RT.list file not available while -u switch activated. Exiting...', 'red'))
         sys.exit()
@@ -528,8 +532,9 @@ for line in lines:
         result = re.search('_Bitfile \"([a-zA-Z0-9_]+.lvbitx)\"', line)
         if (result is not None):
             settings['Bitfile Name']=(result.group(1))
-            copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/{1}".format(args.dst,result.group(1)))
-            copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/reference/{1}".format(args.dst,result.group(1)))
+            if not (args.extract) : 
+                copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/{1}".format(args.dst,result.group(1)))
+                copyfile("{0}/{1}".format(args.src,result.group(1)), "{0}/reference/{1}".format(args.dst,result.group(1)))
         else:
             # Extracting BI, BO, AI, AO, AI FXP, AO FXP, MBBI, and MBBO
             #Extracting BI Vector if exists
@@ -1097,7 +1102,7 @@ else:
         result = None
         
               
-        for i in list(sorted(aiaddr.keys())):
+        for i in list(sorted(aiaddr.keys(), key=str.casefold)):
             for j in list(scalers.keys()):
                 result = re.search(j, i)
                 if (result is not None):
@@ -1116,7 +1121,7 @@ else:
         
         
         f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION"+dlm+"SCAN"+dlm+"Disable\n") 
-        for i in list(sorted(biaddr.keys())):
+        for i in list(sorted(biaddr.keys(), key=str.casefold)):
             if (i != "BI_VECTOR"):
                 if i in csvbiref:
                     f.write(csvbiref[i])
@@ -1132,7 +1137,7 @@ else:
         f.write(dlm*8+"\n"+dlm*8+"\n")       
                  
         f.write("BO INI NAME"+dlm+"BO SUB-EQUIPMENT NAME"+dlm+"BO DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
-        for i in list(boaddr.keys()):
+        for i in list(sorted(boaddr.keys(), key=str.casefold)):
             if i in csvboref:
                 f.write(csvboref[i])
             else:        
@@ -1140,7 +1145,7 @@ else:
         f.write(dlm*8+"\n"+dlm*8+"\n")   
 
         f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
-        for i in list(sorted(aoaddr.keys())):
+        for i in list(sorted(aoaddr.keys(), key=str.casefold)):
             for j in list(scalers.keys()):
                 result = None
                 result = re.search(j, i)
@@ -1159,7 +1164,7 @@ else:
         f.write(dlm+"\n"+dlm*8+"\n")     
 
         f.write("SCALER INI NAME"+dlm+"SCALER EQUIPMENT NAME"+dlm+"SCALER DESCRIPTION"+dlm+"Disable\n") 
-        for i in list(sorted(scalers.keys())):
+        for i in list(sorted(scalers.keys(), key=str.casefold)):
             if i in csvslrref:
                 f.write(csvslrref[i])
             else:        
@@ -1167,7 +1172,7 @@ else:
         f.write(dlm*8+"\n"+dlm*8+"\n")   
 
         f.write("WAVEFORM INI NAME"+dlm+"WAVEFORM SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" SIZE"+dlm+"SCAN"+dlm+"Disable\n") 
-        for i in list(sorted(waveforms.keys())):
+        for i in list(sorted(waveforms.keys(), key=str.casefold)):
             if i in csvwfref:
                 f.write(csvwfref[i])
             else:         
@@ -1184,7 +1189,7 @@ else:
         f.write(dlm*8+"\n"+dlm*8+"\n")      
         
         f.write("MBBO INI NAME"+dlm+"MBBO SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" IVOA"+dlm+" IVOV"+dlm+" COSV"+dlm+" UNSV"+dlm+" AUTOSAVE"+dlm+" INITIALIZE"+dlm+" INIT VAL"+dlm+"Disable\n") 
-        for i in list(sorted(mbboaddr.keys())):
+        for i in list(sorted(mbboaddr.keys(), key=str.casefold)):
             if i in csvmbboref:
                 f.write(csvmbboref[i])
             else:         
