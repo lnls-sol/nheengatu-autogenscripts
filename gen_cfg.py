@@ -342,7 +342,7 @@ parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", defau
 parser.add_argument("--loc", help="Name of the location of the CRIO. Default is Cabine <A>", default = 'A')
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 parser.add_argument("--cfgcsv", help="csv file name. Default=cfg.csv", default = 'cfg.csv')
-parser.add_argument("--refcsv", help="when extract, use existing csv file <default=cfg.csv> as reference when extracting the new one.", action='store_true')
+parser.add_argument("--refcsv", help="when extract, use existing csv file <cfg.csv> as reference when extracting the new one.", action='store_true')
 parser.add_argument("--delimiter", help="Delimiter in csv file. Default is ,", default = ',')
 
 
