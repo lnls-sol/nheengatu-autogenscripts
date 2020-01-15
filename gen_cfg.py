@@ -729,19 +729,20 @@ if not (args.extract) :
                 csvai[lineSplit[0]]['DESC'] = lineSplit[2]
                 csvai[lineSplit[0]]['SCAN'] = lineSplit[6]
                 csvai[lineSplit[0]]['DISABLE'] = lineSplit[7]
-                result = re.search('FXP_', lineSplit[0])
-                if (result is not None):
-                    try:
-                        csvai[lineSplit[0]]['Sign'] = int(lineSplit[3])
-                        csvai[lineSplit[0]]['Word Length'] = int(lineSplit[4])
-                        csvai[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])
-                        fxps[lineSplit[0]]['Sign'] = int(lineSplit[3])
-                        fxps[lineSplit[0]]['Word Length'] = int(lineSplit[4])
-                        fxps[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])
-                    except (ValueError) as err:
-                        print (colored("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1), 'red'))
-                        print(colored(err, 'red'))
-                        sys.exit()  
+                if (csvai[lineSplit[0]]['DISABLE'] == '0') :
+                    result = re.search('FXP_', lineSplit[0])
+                    if (result is not None):
+                        try:
+                            csvai[lineSplit[0]]['Sign'] = int(lineSplit[3])
+                            csvai[lineSplit[0]]['Word Length'] = int(lineSplit[4])
+                            csvai[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])
+                            fxps[lineSplit[0]]['Sign'] = int(lineSplit[3])
+                            fxps[lineSplit[0]]['Word Length'] = int(lineSplit[4])
+                            fxps[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])
+                        except (ValueError) as err:
+                            print (colored("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1), 'red'))
+                            print(colored(err, 'red'))
+                            sys.exit()  
                         
             else: 
                 if (current == 'AO'):
@@ -753,19 +754,20 @@ if not (args.extract) :
                     csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
                     csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
                     csvao[lineSplit[0]]['DISABLE'] = lineSplit[9]
-                    result = re.search('FXP_', lineSplit[0])
-                    if (result is not None): 
-                        try:                   
-                            csvao[lineSplit[0]]['Sign'] = int(lineSplit[3])
-                            csvao[lineSplit[0]]['Word Length'] = int(lineSplit[4])
-                            csvao[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5]) 
-                            fxps[lineSplit[0]]['Sign'] = int(lineSplit[3])
-                            fxps[lineSplit[0]]['Word Length'] = int(lineSplit[4])
-                            fxps[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])                              
-                        except (ValueError) as err:
-                            print (colored("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1), 'red'))
-                            print(colored(err, 'red'))
-                            sys.exit()                            
+                    if (csvao[lineSplit[0]]['DISABLE'] == '0') :
+                        result = re.search('FXP_', lineSplit[0])
+                        if (result is not None): 
+                            try:                   
+                                csvao[lineSplit[0]]['Sign'] = int(lineSplit[3])
+                                csvao[lineSplit[0]]['Word Length'] = int(lineSplit[4])
+                                csvao[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5]) 
+                                fxps[lineSplit[0]]['Sign'] = int(lineSplit[3])
+                                fxps[lineSplit[0]]['Word Length'] = int(lineSplit[4])
+                                fxps[lineSplit[0]]['Integer Word Length'] = int(lineSplit[5])                              
+                            except (ValueError) as err:
+                                print (colored("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1), 'red'))
+                                print(colored(err, 'red'))
+                                sys.exit()                            
                 else: 
                     if (current == 'BI'):
                         #BI INI NAME,BI DB NAME,BI DESCRIPTION
