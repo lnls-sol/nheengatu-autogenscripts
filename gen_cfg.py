@@ -401,17 +401,14 @@ if not os.path.exists(args.src):
     print(colored("Source folder not found <{0}>. Is this the correct path?".format( args.src), 'red'))
     sys.exit()
         
-# search for header file
+# search for header file - find more than one header file
 headerFilesFound = glob.glob("{0}/*.h".format(args.src));
 if (len(headerFilesFound) > 1): 
     print(colored("Found {0} header files in {1} folder. Exclude others and try again.".format(len(headerFilesFound), args.src), 'red'))
     print(colored(headerFilesFound, 'red'))
     sys.exit()
 
-
-
-
- 
+# search for header file - did not find any header file
 try:
     with open(headerFilesFound[0]) as f:
         lines = f.readlines()
