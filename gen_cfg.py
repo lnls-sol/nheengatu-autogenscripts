@@ -408,10 +408,16 @@ if (len(headerFilesFound) > 1):
     print(colored(headerFilesFound, 'red'))
     sys.exit()
 
-with open(headerFilesFound[0]) as f:
-    lines = f.readlines()
 
-    
+
+
+ 
+try:
+    with open(headerFilesFound[0]) as f:
+        lines = f.readlines()
+except (IndexError) as err:
+    print (colored("Did not find header file. Did you run the C API generator and copy the header file to the source folder?", 'red'))
+    sys.exit()     
 
 
     
