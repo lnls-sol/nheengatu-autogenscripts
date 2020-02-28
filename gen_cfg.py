@@ -421,7 +421,7 @@ except (IndexError) as err:
 # Prepare output folder
 if not (args.extract) : 
     if os.path.exists(args.dst):
-        os.system("rm -rf {0}".format(args.dst)) 
+        shutil.rmtree(args.dst)
     os.makedirs(args.dst)
     os.makedirs(args.dst+"/reference")
     callCommand = " ".join(sys.argv)
