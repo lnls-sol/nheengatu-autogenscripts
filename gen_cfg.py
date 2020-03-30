@@ -974,6 +974,10 @@ if not (args.extract) :
         f.write("epicsEnvSet(\"IOCNAME\", \""+args.beamline+"-"+args.loc+"-"+args.crio+"\")\n")           
         f.write('dbLoadRecords \"${RECCASTER}/db/reccaster.db", "P='+args.beamline+":"+args.loc+":"+args.crio+":REC:\"\n")  
 
+    with open("{}/ioc-name".format(args.dst) , "w") as f:
+        print(colored ("Generating {}/IOCNAME".format(args.dst), 'green'))
+        f.write(args.beamline+"-"+args.loc+"-"+args.crio+"\n")           
+
     #template definitions
     tplhdri = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
     tplbdyi = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
