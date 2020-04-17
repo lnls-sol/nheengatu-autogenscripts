@@ -532,7 +532,7 @@ for line in lines:
     if (result is not None):
         settings['Signature']=(result.group(1))
     else:
-        result = re.search('_Bitfile \"([a-zA-Z0-9_]+.lvbitx)\"', line)
+        result = re.search('_Bitfile \"([a-zA-Z0-9_\-]+.lvbitx)\"', line)
         if (result is not None):
             settings['Bitfile Name']=(result.group(1))
             if not (args.extract) : 
