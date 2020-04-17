@@ -1,11 +1,10 @@
-# crio-utils
+# Nheengatu configurations auto-generation script
 
-This repository contains miscellaneous script for various purposes.
+This repository contains miscellaneous script for various purposes. More information can be found [here](https://github.com/lnls-sol/project-nheengatu/tree/master/docs).
 
 ## gen_cfg.py
 
-This script generates a configuration file from a set of files and the 
-FPGA C API generated header.
+This script generates the whole configuration folder necessary to run the IOC.
 
 ### Help
     $ ./gen_cfg.py -h
