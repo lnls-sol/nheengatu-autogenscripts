@@ -343,6 +343,7 @@ parser.add_argument("--loc", help="Name of the location of the CRIO. Default is 
 parser.add_argument("--scalerdtyp", help="DTYPE of Scaler record", default = 'CRIO Scaler')
 parser.add_argument("--cfgcsv", help="csv file name. Default=cfg.csv", default = 'cfg.csv')
 parser.add_argument("--refcsv", help="when extract, use existing csv file <cfg.csv> as reference when extracting the new one.", action='store_true')
+parser.add_argument("--overriderefcsv", help="File name that will override the default reference csn file (cfg.csv)", default = 'cfg.csv')
 parser.add_argument("--delimiter", help="Delimiter in csv file. Default is ,", default = ',')
 
 
@@ -416,7 +417,12 @@ except (IndexError) as err:
     print (colored("Did not find header file. Did you run the C API generator and copy the header file to the source folder?", 'red'))
     sys.exit()     
 
-
+# Check RT.list file
+if (args.useSM):
+    if (not os.path.isfile(args.src+"/RT.list")):
+        print(colored('RT.list file not available while -u switch activated. Exiting...', 'red'))
+        sys.exit()
+        
     
 # Prepare output folder
 if not (args.extract) : 
@@ -425,30 +431,37 @@ if not (args.extract) :
     os.makedirs(args.dst)
     os.makedirs(args.dst+"/reference")
     callCommand = " ".join(sys.argv)
+    
     with open(args.dst+"/reference/command.sh", "w") as f:
         f.write("#!/bin/bash\n")  
         f.write(callCommand) 
+        
+    # copy cfg file to reference
     if (os.path.isfile(args.src+"/"+args.cfgcsv)):
         copyfile(args.src+"/"+args.cfgcsv, args.dst+"/reference/"+args.cfgcsv)
     else :
         print(colored('{0} file not available while --extract is not activated.'.format(args.cfgcsv),'red'))
         sys.exit()               
 
+    # copy headerfile
     shutil.copy2(headerFilesFound[0], args.dst+"/reference")
 
-        
-if (args.useSM):
-    if (os.path.isfile(args.src+"/RT.list")):
-        if not (args.extract) : 
-            copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
-    else :
-        print(colored('RT.list file not available while -u switch activated. Exiting...', 'red'))
-        sys.exit()
+    # copy RT.list file
+    if (args.useSM):
+        copyfile(args.src+"/RT.list", args.dst+"/reference/RT.list")
+
+   
 else:
+    # make a backup of configuration file before replacing it.
     if(os.path.isfile(args.src+"/"+args.cfgcsv)):
         copyfile(args.src+"/"+args.cfgcsv, args.src+"/cfg_old.csv")
-    if not os.path.exists(args.dst):
-        os.makedirs(args.dst)
+
+    if (args.refcsv):
+        if(not os.path.isfile(args.src+"/"+args.overriderefcsv)):
+            print(colored('{0} file not available while --overriderefcsv is activated.'.format(args.overriderefcsv),'red'))
+            sys.exit() 
+              
+
         
 # extract data from header and RT.list whether extract is chosen or not.                           
 for line in lines:
@@ -1027,7 +1040,7 @@ else:
 
     #Check if there is need to use reference cfg file
     if (args.refcsv):
-        with open("{0}/{1}".format(args.src, "cfg_old.csv") , "r") as f:
+        with open("{0}/{1}".format(args.src, args.overriderefcsv) , "r") as f:
             lines = f.readlines()
         current = "None"
         for index, val in enumerate(lines):
