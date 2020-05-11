@@ -168,25 +168,48 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                                     csv[key]['COSV'], csv[key]['UNSV'] )
                         else:
                             print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))                        
-                else: #AO, AI, BO, BI                  
-                    for indx, key in enumerate(sorted_pins_keys):
-                        if (key == 'BI_VECTOR'):
-                            continue
-                        if key in csv:
-                            if (csv[key]['DISABLE'] == '1'):
-                                print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                else: # BO, BI   
+                    if (fname == "bi" or fname == "bo"):               
+                        for indx, key in enumerate(sorted_pins_keys):
+                            if (key == 'BI_VECTOR'):
                                 continue
-                            else:
-                                if not csv[key]['EQ']:
-                                    print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
+                            if key in csv:
+                                if (csv[key]['DISABLE'] == '1'):
+                                    print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                                    continue
                                 else:
-                                    var_num += 1 
-                                    if (fname == "ai" or fname == "bi"):                                                   
-                                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'])
+                                    if not csv[key]['EQ']:
+                                        print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
                                     else:
-                                        tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
-                        else:
-                            print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
+                                        var_num += 1 
+                                        if (fname == "bi"):                                                   
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'])
+                                        else:
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                            else:
+                                print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
+                    else : #AO, AI
+                        for indx, key in enumerate(sorted_pins_keys):
+                            if key in csv:
+                                if (csv[key]['DISABLE'] == '1'):
+                                    print(colored("WARNING: Key {0} disabled. Is this intentional?".format(key), 'red')) 
+                                    continue
+                                else:
+                                    if not csv[key]['EQ']:
+                                        print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
+                                    else:
+                                        var_num += 1 
+                                        if (fname == "ai"):                                                   
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'], \
+                                            csv[key]['EGU'], csv[key]['HIHI'], csv[key]['HIGH'], csv[key]['LOW'], csv[key]['LOLO'], \
+                                            csv[key]['HHSV'], csv[key]['HSV'], csv[key]['LSV'], csv[key]['LLSV'], csv[key]['HYST'] )
+                                        else:
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], \
+                                            csv[key]['EGU'], csv[key]['HIHI'], csv[key]['HIGH'], csv[key]['LOW'], csv[key]['LOLO'], \
+                                            csv[key]['HHSV'], csv[key]['HSV'], csv[key]['LSV'], csv[key]['LLSV'], csv[key]['HYST'], \
+                                            csv[key]['IVOA'], csv[key]['IVOV'] )
+                            else:
+                                print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
             
 
     tpls = tpls + "\n}"
@@ -467,43 +490,43 @@ else:
 for line in lines:
 
     # Extracting scaler data
-    result = re.search('ControlArrayU32_PresetValues_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+    result = re.search('ControlArrayU32_PresetValues_('+args.scalerkey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line)
     if (result is not None):
         scalers[result.group(1)]['Preset Values']=(result.group(2))
         fpgavarCount += 1
     else:
-        result = re.search('ControlBool_Enable_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+        result = re.search('ControlBool_Enable_('+args.scalerkey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line)
         if (result is not None):
             scalers[result.group(1)]['Enable']=(result.group(2))
             fpgavarCount += 1    
         else:
-            result = re.search('ControlArrayBool_Gate_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+            result = re.search('ControlArrayBool_Gate_('+args.scalerkey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line)
             if (result is not None):
                 scalers[result.group(1)]['Gate']=(result.group(2))
                 fpgavarCount += 1  
             else:
-                result = re.search('ControlBool_OneShot_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                result = re.search('ControlBool_OneShot_('+args.scalerkey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line)
                 if (result is not None):
                     scalers[result.group(1)]['OneShot']=(result.group(2))
                     fpgavarCount += 1                  
                 else:
-                    result = re.search('IndicatorArrayU32_Counter_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                    result = re.search('IndicatorArrayU32_Counter_('+args.scalerkey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line)
                     if (result is not None):
                         scalers[result.group(1)]['Counters']=(result.group(2))
                         fpgavarCount += 1                   
                     else:
-                        result = re.search('IndicatorArrayU32Size_Counter_('+args.scalerkey+'[a-zA-Z0-9_]*) = ([0-9]+)', line)
+                        result = re.search('IndicatorArrayU32Size_Counter_('+args.scalerkey+'[a-zA-Z0-9_\-]*) = ([0-9]+)', line)
                         if (result is not None):
                             scalers[result.group(1)]['Number of Counters']=(result.group(2))
                             fpgavarCount += 1                 
                         else:
-                            result = re.search('IndicatorBool_Done_('+args.scalerkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line)
+                            result = re.search('IndicatorBool_Done_('+args.scalerkey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line)
                             if (result is not None):
                                 scalers[result.group(1)]['Done']=(result.group(2))
                                 fpgavarCount += 1                    
 
     # Extracting waveform data
-    result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)_('+args.waveformkey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+    result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)_('+args.waveformkey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
     if (result is not None):
         waveforms[result.group(2)]['Address']=(result.group(3))
         if (result.group(1) == 'I8'):
@@ -533,7 +556,7 @@ for line in lines:
                                     csvwf[result.group(2)]['TypeEPICS'] = 'DOUBLE'                  
         fpgavarCount += 1
     else:
-        result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)Size_('+args.waveformkey+'[a-zA-Z0-9_]*) = ([0-9]+)', line, flags=re.IGNORECASE)
+        result = re.search('IndicatorArray(I8|U8|I16|U16|I32|U32|I64|U64|Sgl)Size_('+args.waveformkey+'[a-zA-Z0-9_\-]*) = ([0-9]+)', line, flags=re.IGNORECASE)
         if (result is not None):
             waveforms[result.group(2)]['Size']=(result.group(3))
             fpgavarCount += 1   
@@ -554,7 +577,7 @@ for line in lines:
         else:
             # Extracting BI, BO, AI, AO, AI FXP, AO FXP, MBBI, and MBBO
             #Extracting BI Vector if exists
-            result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+            result = re.search('IndicatorU64_('+args.bikey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
             if (result is not None):
                 biaddr["BI_VECTOR"]=(result.group(2))
                 if (int(args.binum) != 0):
@@ -564,49 +587,49 @@ for line in lines:
                     print(colored("WARNING: Found BI vector in header file, and yet binum input parameter was set to 0. Is this intentional?",'red')) 
             else:
                 # Extract boolean indicator (BI)
-                result = re.search('IndicatorBool_('+args.bikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                result = re.search('IndicatorBool_('+args.bikey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                 if (result is not None):
                     biaddr[result.group(1)]=(result.group(2))
                     fpgavarCount += 1
                 else:
                     # Extract Single precision floating point indicator (AI)
-                    result = re.search('IndicatorSgl_('+args.aikey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                    result = re.search('IndicatorSgl_('+args.aikey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                     if (result is not None):
                         aiaddr[result.group(1)]=(result.group(2))
                         fpgavarCount += 1                
                     else:
                         # Extract Single precision floating point control (AO)
-                        result = re.search('ControlSgl_('+args.aokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                        result = re.search('ControlSgl_('+args.aokey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                         if (result is not None):
                             aoaddr[result.group(1)]=(result.group(2))         
                             fpgavarCount += 1
                         else:
                             # Extract boolean control (BO)
-                            result = re.search('ControlBool_('+args.bokey+'[a-zA-Z0-9_]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                            result = re.search('ControlBool_('+args.bokey+'[a-zA-Z0-9_\-]*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                             if (result is not None):
                                 boaddr[result.group(1)]=(result.group(2))                              
                                 fpgavarCount += 1
                             else:
                                 # Extract fixed point indicator (AI)
-                                result = re.search('IndicatorU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                                result = re.search('IndicatorU64_('+args.fxpkey+'([a-zA-Z0-9_\-])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                 if (result is not None):
                                     aiaddr["FXP_"+result.group(1)]=(result.group(3))
                                     fpgavarCount += 1   
                                 else:
                                     # Extract fixed point control (AO)
-                                    result = re.search('ControlU64_('+args.fxpkey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                                    result = re.search('ControlU64_('+args.fxpkey+'([a-zA-Z0-9_\-])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                     if (result is not None):
                                         aoaddr["FXP_"+result.group(1)]=(result.group(3))
                                         fpgavarCount += 1              
                                     else:
                                         # Extract MBB indicator (MBBO)
-                                        result = re.search('IndicatorU16_('+args.mbbikey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                                        result = re.search('IndicatorU16_('+args.mbbikey+'([a-zA-Z0-9_\-])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                         if (result is not None):
                                             mbbiaddr[result.group(1)]=(result.group(3))
                                             fpgavarCount += 1   
                                         else:
                                             # Extract MBB control (MBBI)
-                                            result = re.search('ControlU16_('+args.mbbokey+'([a-zA-Z0-9_])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
+                                            result = re.search('ControlU16_('+args.mbbokey+'([a-zA-Z0-9_\-])*) = 0x([A-F0-9]{5})', line, flags=re.IGNORECASE)
                                             if (result is not None):
                                                 mbboaddr[result.group(1)]=(result.group(3))
                                                 fpgavarCount += 1                                         
@@ -646,7 +669,7 @@ if (args.useSM):
                                 biaddr[val]=i
                                 rtvarCount += 1     
                             else:
-                                result = re.search('(RT_(I08|U08|I16|U16|I32|U32|I64|U64|SGL|DBL|BOL)_WF[a-zA-Z0-9_]*)[\s*]([0-9]+)', val)
+                                result = re.search('(RT_(I08|U08|I16|U16|I32|U32|I64|U64|SGL|DBL|BOL)_WF[a-zA-Z0-9_\-]*)[\s*]([0-9]+)', val)
                                 if (result is not None):
                                     waveforms[result.group(1)]['Address']=i
                                     waveforms[result.group(1)]['Size']=result.group(3)
@@ -739,13 +762,25 @@ if not (args.extract) :
                                             current = "MBBO"
                                             continue                                                                           
             if (current == 'AI'):
-                #AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP)
-                #    0            1          2              3               4                   5
+                #AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP), SCAN
+                #    0            1          2              3               4                   5                6
+                #EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, DISABLE
+                # 7    8      9    10    11   12    13   14   15    16     17
                 csvai[lineSplit[0]]['EQ'] = lineSplit[1]
                 csvai[lineSplit[0]]['DESC'] = lineSplit[2]
                 csvai[lineSplit[0]]['SCAN'] = lineSplit[6]
-                csvai[lineSplit[0]]['DISABLE'] = lineSplit[7]
+                csvai[lineSplit[0]]['DISABLE'] = lineSplit[17]
                 if (csvai[lineSplit[0]]['DISABLE'] == '0') :
+                    csvai[lineSplit[0]]['EGU'] = lineSplit[7]
+                    csvai[lineSplit[0]]['HIHI'] = float(lineSplit[8])
+                    csvai[lineSplit[0]]['HIGH'] = float(lineSplit[9])
+                    csvai[lineSplit[0]]['LOW'] = float(lineSplit[10])
+                    csvai[lineSplit[0]]['LOLO'] = float(lineSplit[11])
+                    csvai[lineSplit[0]]['HHSV'] = lineSplit[12].upper()
+                    csvai[lineSplit[0]]['HSV'] = lineSplit[13].upper()
+                    csvai[lineSplit[0]]['LSV'] = lineSplit[14].upper()
+                    csvai[lineSplit[0]]['LLSV'] = lineSplit[15].upper()
+                    csvai[lineSplit[0]]['HYST'] = float(lineSplit[16])
                     result = re.search('FXP_', lineSplit[0])
                     if (result is not None):
                         try:
@@ -764,13 +799,27 @@ if not (args.extract) :
                 if (current == 'AO'):
                     #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL
                     #    0            1          2              3               4                   5                 6           7          8
+                    #EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV, DISABLE
+                    # 9    10    11    12   13    14    15   16   17    18    19     20    21
                     csvao[lineSplit[0]]['EQ'] = lineSplit[1]
                     csvao[lineSplit[0]]['DESC'] = lineSplit[2]
                     csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
                     csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
                     csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
-                    csvao[lineSplit[0]]['DISABLE'] = lineSplit[9]
+                    csvao[lineSplit[0]]['DISABLE'] = lineSplit[21]
                     if (csvao[lineSplit[0]]['DISABLE'] == '0') :
+                        csvao[lineSplit[0]]['EGU'] = lineSplit[9]
+                        csvao[lineSplit[0]]['HIHI'] = float(lineSplit[10])
+                        csvao[lineSplit[0]]['HIGH'] = float(lineSplit[11])
+                        csvao[lineSplit[0]]['LOW'] = float(lineSplit[12])
+                        csvao[lineSplit[0]]['LOLO'] = float(lineSplit[13])
+                        csvao[lineSplit[0]]['HHSV'] = lineSplit[14].upper()
+                        csvao[lineSplit[0]]['HSV'] = lineSplit[15].upper()
+                        csvao[lineSplit[0]]['LSV'] = lineSplit[16].upper()
+                        csvao[lineSplit[0]]['LLSV'] = lineSplit[17].upper()
+                        csvao[lineSplit[0]]['HYST'] = float(lineSplit[18])
+                        csvao[lineSplit[0]]['IVOA'] = lineSplit[19]
+                        csvao[lineSplit[0]]['IVOV'] = lineSplit[20]
                         result = re.search('FXP_', lineSplit[0])
                         if (result is not None): 
                             try:                   
@@ -992,10 +1041,19 @@ if not (args.extract) :
         f.write(args.beamline+"-"+args.loc+"-"+args.crio+"\n")           
 
     #template definitions
-    tplhdri = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
-    tplbdyi = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
-    tplhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
-    tplbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
+    tplhdrbi = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
+    tplbdybi = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
+    tplhdrbo = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
+    tplbdybo = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
+    
+    tplhdrai = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN, EGU, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST}}\n'
+    tplbdyai = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
+, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\"}}\n'  
+  
+    tplhdrao = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV}}\n'
+    tplbdyao = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
+, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\"}}\n'
+
     tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, FREQ, PIN, DESC}}\n'
     tplsclrbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
     tplwfhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, FTVL, NELM, DESC, SCAN}}\n'
@@ -1025,10 +1083,10 @@ TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n
     #Generate substitutions  
     bidict_inverted = {v: k for k, v in bidict.items()} 
     bidict_inverted = {**biaddr, **bidict_inverted}
-    buildSub(tplhdr, tplbdy, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao',  csvao)
-    buildSub(tplhdri, tplbdyi, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', csvai)
-    buildSub(tplhdri, tplbdyi, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', csvbi)
-    buildSub(tplhdr, tplbdy, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', csvbo)
+    buildSub(tplhdrao, tplbdyao, args.beamline, args.aodtyp, aoaddr, "devAOCRIO.db.template", 'ao',  csvao)
+    buildSub(tplhdrai, tplbdyai, args.beamline, args.aidtyp, aiaddr, "devAICRIO.db.template", 'ai', csvai)
+    buildSub(tplhdrbi, tplbdybi, args.beamline, args.bidtyp, bidict_inverted, "devBICRIO.db.template", 'bi', csvbi)
+    buildSub(tplhdrbo, tplbdybo, args.beamline, args.bodtyp, boaddr, "devBOCRIO.db.template", 'bo', csvbo)
     buildSub(tplmbbihdr, tplmbbibdy, args.beamline, args.mbbidtyp, mbbiaddr, "devMBBICRIO.db.template", 'mbbi', csvmbbi)
     buildSub(tplmbbohdr, tplmbbobdy, args.beamline, args.mbbodtyp, mbboaddr, "devMBBOCRIO.db.template", 'mbbo', csvmbbo)
     buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', csvslr)
@@ -1120,7 +1178,8 @@ else:
     
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
-        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"SCAN"+dlm+"Disable\n") 
+    #EGU, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST
+        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"SCAN"+dlm+"EGU"+dlm+"HIHI"+dlm+"LOLO"+dlm+"HIGH"+dlm+"LOW"+dlm+"HHSV"+dlm+"LLSV"+dlm+"HSV"+dlm+"LSV"+dlm+"HYST"+dlm+"Disable\n") 
         result = None
         
               
@@ -1133,12 +1192,12 @@ else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:
-                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm+".1 second"+dlm+"0\n")   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm+".1 second"+dlm+(dlm+"0")*10+"\n")   
             else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:            
-                    f.write("{}".format(i)+dlm*6+".1 second"+dlm+"0\n")   
+                    f.write("{}".format(i)+dlm*6+".1 second"+dlm+(dlm+"0")*10+"\n")   
         f.write(""+dlm*8+"\n"+dlm*8+"\n")  
         
         
@@ -1166,7 +1225,8 @@ else:
                 f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")   
 
-        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
+        #EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV
+        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"EGU"+dlm+"HIHI"+dlm+"HIGH"+dlm+"LOW"+ dlm+"LOLO"+ dlm+"HHSV"+ dlm+"HSV"+ dlm+"LSV"+ dlm+"LLSV"+ dlm+"HYST"+ dlm+"IVOA"+ dlm+"IVOV"+ dlm+"Disable\n") 
         for i in list(sorted(aoaddr.keys(), key=str.casefold)):
             for j in list(scalers.keys()):
                 result = None
@@ -1177,12 +1237,12 @@ else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:              
-                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"64"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0\n")   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"64"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+(dlm+"0")*12+"\n")   
             else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:             
-                    f.write("{}".format(i)+dlm*6+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
+                    f.write("{}".format(i)+dlm*6+"0"+dlm+"0"+dlm+"0"+dlm+(dlm+"0")*12+"\n") 
         f.write(dlm+"\n"+dlm*8+"\n")     
 
         f.write("SCALER INI NAME"+dlm+"SCALER EQUIPMENT NAME"+dlm+"SCALER DESCRIPTION"+dlm+"Disable\n") 
