@@ -770,6 +770,10 @@ if not (args.extract) :
                 csvai[lineSplit[0]]['DESC'] = lineSplit[2]
                 csvai[lineSplit[0]]['SCAN'] = lineSplit[6]
                 csvai[lineSplit[0]]['DISABLE'] = lineSplit[17]
+                if not csvai[lineSplit[0]]['DISABLE']:
+                    print (colored("Error with CSV entry {0} line {1}. Disable is not set. Exiting...".format(lineSplit[0], index+1), 'red'))
+                    sys.exit()  
+              
                 if (csvai[lineSplit[0]]['DISABLE'] == '0') :
                     csvai[lineSplit[0]]['EGU'] = lineSplit[7]
                     csvai[lineSplit[0]]['HIHI'] = float(lineSplit[8])
@@ -794,7 +798,7 @@ if not (args.extract) :
                             print (colored("Error with CSV entry {0} line {1}".format(lineSplit[0], index+1), 'red'))
                             print(colored(err, 'red'))
                             sys.exit()  
-                        
+      
             else: 
                 if (current == 'AO'):
                     #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL
@@ -807,6 +811,9 @@ if not (args.extract) :
                     csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
                     csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
                     csvao[lineSplit[0]]['DISABLE'] = lineSplit[21]
+                    if not csvao[lineSplit[0]]['DISABLE']:
+                        print (colored("Error with CSV entry {0} line {1}. Disable is not set. Exiting...".format(lineSplit[0], index+1), 'red'))
+                        sys.exit()                      
                     if (csvao[lineSplit[0]]['DISABLE'] == '0') :
                         csvao[lineSplit[0]]['EGU'] = lineSplit[9]
                         csvao[lineSplit[0]]['HIHI'] = float(lineSplit[10])
