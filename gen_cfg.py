@@ -40,17 +40,21 @@ from colored import fg, bg, attr
 import shutil
     
 ### HELPER FUNCTIONS
-def printToCFGFile(f, cfgkey, items, csv, use_csv):
+def printToCFGFile(f, cfgkey, items, csv, use_csv, ):
     f.write("[{}]\n".format(cfgkey))
     for key,value in items.items():
-        if (use_csv == 1):
-            if (cfgkey == 'BI_VECTOR'):
-                if value in csv:
-                    f.write("{}={}\n".format(key,value)) 
-            elif key in csv:
-                f.write("{}={}\n".format(key,value)) 
+        result = re.search('FXP_', key)
+        if (result is not None and csv[key]['DISABLE'] == '1'):
+            continue
         else:
-            f.write("{}={}\n".format(key,value))    
+            if (use_csv == 1):
+                if (cfgkey == 'BI_VECTOR'):
+                    if value in csv:
+                        f.write("{}={}\n".format(key,value)) 
+                elif key in csv:
+                    f.write("{}={}\n".format(key,value)) 
+            else:
+                f.write("{}={}\n".format(key,value))    
           
     f.write("\n\n")     
 
