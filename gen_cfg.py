@@ -205,13 +205,14 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                         var_num += 1 
                                         if (fname == "ai"):                                                   
                                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'], \
-                                            csv[key]['EGU'], csv[key]['HIHI'], csv[key]['HIGH'], csv[key]['LOW'], csv[key]['LOLO'], \
-                                            csv[key]['HHSV'], csv[key]['HSV'], csv[key]['LSV'], csv[key]['LLSV'], csv[key]['HYST'] )
+                                            csv[key]['EGU'], csv[key]['PREC'], csv[key]['HIHI'], csv[key]['HIGH'], csv[key]['LOW'], \
+                                            csv[key]['LOLO'], csv[key]['HHSV'], csv[key]['HSV'], csv[key]['LSV'], csv[key]['LLSV'], \
+                                            csv[key]['HYST'] )
                                         else:
                                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], \
-                                            csv[key]['EGU'], csv[key]['HIHI'], csv[key]['HIGH'], csv[key]['LOW'], csv[key]['LOLO'], \
-                                            csv[key]['HHSV'], csv[key]['HSV'], csv[key]['LSV'], csv[key]['LLSV'], csv[key]['HYST'], \
-                                            csv[key]['IVOA'], csv[key]['IVOV'] )
+                                            csv[key]['EGU'], csv[key]['PREC'], csv[key]['HIHI'], csv[key]['HIGH'], csv[key]['LOW'], \
+                                            csv[key]['LOLO'], csv[key]['HHSV'], csv[key]['HSV'], csv[key]['LSV'], csv[key]['LLSV'], \
+                                            csv[key]['HYST'], csv[key]['IVOA'], csv[key]['IVOV'] )
                             else:
                                 print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
             
@@ -768,27 +769,28 @@ if not (args.extract) :
             if (current == 'AI'):
                 #AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP), SCAN
                 #    0            1          2              3               4                   5                6
-                #EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, DISABLE
-                # 7    8      9    10    11   12    13   14   15    16     17
+                #EGU, , PREC, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, DISABLE
+                # 7     8      9    10    11   12    13    14   15    16    17    18
                 csvai[lineSplit[0]]['EQ'] = lineSplit[1]
                 csvai[lineSplit[0]]['DESC'] = lineSplit[2]
                 csvai[lineSplit[0]]['SCAN'] = lineSplit[6]
-                csvai[lineSplit[0]]['DISABLE'] = lineSplit[17]
+                csvai[lineSplit[0]]['DISABLE'] = lineSplit[18]
                 if not csvai[lineSplit[0]]['DISABLE']:
                     print (colored("Error with CSV entry {0} line {1}. Disable is not set. Exiting...".format(lineSplit[0], index+1), 'red'))
                     sys.exit()  
               
                 if (csvai[lineSplit[0]]['DISABLE'] == '0') :
                     csvai[lineSplit[0]]['EGU'] = lineSplit[7]
-                    csvai[lineSplit[0]]['HIHI'] = float(lineSplit[8])
-                    csvai[lineSplit[0]]['HIGH'] = float(lineSplit[9])
-                    csvai[lineSplit[0]]['LOW'] = float(lineSplit[10])
-                    csvai[lineSplit[0]]['LOLO'] = float(lineSplit[11])
-                    csvai[lineSplit[0]]['HHSV'] = lineSplit[12].upper()
-                    csvai[lineSplit[0]]['HSV'] = lineSplit[13].upper()
-                    csvai[lineSplit[0]]['LSV'] = lineSplit[14].upper()
-                    csvai[lineSplit[0]]['LLSV'] = lineSplit[15].upper()
-                    csvai[lineSplit[0]]['HYST'] = float(lineSplit[16])
+                    csvai[lineSplit[0]]['PREC'] = lineSplit[8]
+                    csvai[lineSplit[0]]['HIHI'] = float(lineSplit[9])
+                    csvai[lineSplit[0]]['HIGH'] = float(lineSplit[10])
+                    csvai[lineSplit[0]]['LOW'] = float(lineSplit[11])
+                    csvai[lineSplit[0]]['LOLO'] = float(lineSplit[12])
+                    csvai[lineSplit[0]]['HHSV'] = lineSplit[13].upper()
+                    csvai[lineSplit[0]]['HSV'] = lineSplit[14].upper()
+                    csvai[lineSplit[0]]['LSV'] = lineSplit[15].upper()
+                    csvai[lineSplit[0]]['LLSV'] = lineSplit[16].upper()
+                    csvai[lineSplit[0]]['HYST'] = float(lineSplit[17])
                     result = re.search('FXP_', lineSplit[0])
                     if (result is not None):
                         try:
@@ -807,30 +809,31 @@ if not (args.extract) :
                 if (current == 'AO'):
                     #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL
                     #    0            1          2              3               4                   5                 6           7          8
-                    #EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV, DISABLE
-                    # 9    10    11    12   13    14    15   16   17    18    19     20    21
+                    #EGU, PREC,  HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV, DISABLE
+                    # 9    10    11    12    13    14    15   16   17    18    19    20    21      22
                     csvao[lineSplit[0]]['EQ'] = lineSplit[1]
                     csvao[lineSplit[0]]['DESC'] = lineSplit[2]
                     csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
                     csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
                     csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
-                    csvao[lineSplit[0]]['DISABLE'] = lineSplit[21]
+                    csvao[lineSplit[0]]['DISABLE'] = lineSplit[22]
                     if not csvao[lineSplit[0]]['DISABLE']:
                         print (colored("Error with CSV entry {0} line {1}. Disable is not set. Exiting...".format(lineSplit[0], index+1), 'red'))
                         sys.exit()                      
                     if (csvao[lineSplit[0]]['DISABLE'] == '0') :
                         csvao[lineSplit[0]]['EGU'] = lineSplit[9]
-                        csvao[lineSplit[0]]['HIHI'] = float(lineSplit[10])
-                        csvao[lineSplit[0]]['HIGH'] = float(lineSplit[11])
-                        csvao[lineSplit[0]]['LOW'] = float(lineSplit[12])
-                        csvao[lineSplit[0]]['LOLO'] = float(lineSplit[13])
-                        csvao[lineSplit[0]]['HHSV'] = lineSplit[14].upper()
-                        csvao[lineSplit[0]]['HSV'] = lineSplit[15].upper()
-                        csvao[lineSplit[0]]['LSV'] = lineSplit[16].upper()
-                        csvao[lineSplit[0]]['LLSV'] = lineSplit[17].upper()
-                        csvao[lineSplit[0]]['HYST'] = float(lineSplit[18])
-                        csvao[lineSplit[0]]['IVOA'] = lineSplit[19]
-                        csvao[lineSplit[0]]['IVOV'] = lineSplit[20]
+                        csvao[lineSplit[0]]['PREC'] = lineSplit[10]
+                        csvao[lineSplit[0]]['HIHI'] = float(lineSplit[11])
+                        csvao[lineSplit[0]]['HIGH'] = float(lineSplit[12])
+                        csvao[lineSplit[0]]['LOW'] = float(lineSplit[13])
+                        csvao[lineSplit[0]]['LOLO'] = float(lineSplit[14])
+                        csvao[lineSplit[0]]['HHSV'] = lineSplit[15].upper()
+                        csvao[lineSplit[0]]['HSV'] = lineSplit[16].upper()
+                        csvao[lineSplit[0]]['LSV'] = lineSplit[17].upper()
+                        csvao[lineSplit[0]]['LLSV'] = lineSplit[18].upper()
+                        csvao[lineSplit[0]]['HYST'] = float(lineSplit[19])
+                        csvao[lineSplit[0]]['IVOA'] = lineSplit[20]
+                        csvao[lineSplit[0]]['IVOV'] = lineSplit[21]
                         result = re.search('FXP_', lineSplit[0])
                         if (result is not None): 
                             try:                   
@@ -1057,13 +1060,13 @@ if not (args.extract) :
     tplhdrbo = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
     tplbdybo = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
     
-    tplhdrai = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN, EGU, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST}}\n'
+    tplhdrai = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN, EGU, PREC, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST}}\n'
     tplbdyai = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
-, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\"}}\n'  
+, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\"}}\n'  
   
-    tplhdrao = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV}}\n'
+    tplhdrao = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, EGU, PREC, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV}}\n'
     tplbdyao = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
-, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\"}}\n'
+, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\"}}\n'
 
     tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, FREQ, PIN, DESC}}\n'
     tplsclrbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
@@ -1189,8 +1192,8 @@ else:
     
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
-    #EGU, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST
-        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"SCAN"+dlm+"EGU"+dlm+"HIHI"+dlm+"LOLO"+dlm+"HIGH"+dlm+"LOW"+dlm+"HHSV"+dlm+"LLSV"+dlm+"HSV"+dlm+"LSV"+dlm+"HYST"+dlm+"Disable\n") 
+    #EGU, PREC, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST
+        f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"SCAN"+dlm+"EGU"+dlm+"PREC"+dlm+"HIHI"+dlm+"LOLO"+dlm+"HIGH"+dlm+"LOW"+dlm+"HHSV"+dlm+"LLSV"+dlm+"HSV"+dlm+"LSV"+dlm+"HYST"+dlm+"Disable\n") 
         result = None
         
               
@@ -1203,12 +1206,12 @@ else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:
-                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm+".1 second"+dlm+(dlm+"0")*10+"\n")   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"32"+dlm+".1 second"+dlm+(dlm+"0")*11+"\n")   
             else:
                 if i in csvairef:
                     f.write(csvairef[i])
                 else:            
-                    f.write("{}".format(i)+dlm*6+".1 second"+dlm+(dlm+"0")*10+"\n")   
+                    f.write("{}".format(i)+dlm*6+".1 second"+dlm+(dlm+"0")*11+"\n")   
         f.write(""+dlm*8+"\n"+dlm*8+"\n")  
         
         
@@ -1236,8 +1239,8 @@ else:
                 f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")   
 
-        #EGU, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV
-        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"EGU"+dlm+"HIHI"+dlm+"HIGH"+dlm+"LOW"+ dlm+"LOLO"+ dlm+"HHSV"+ dlm+"HSV"+ dlm+"LSV"+ dlm+"LLSV"+ dlm+"HYST"+ dlm+"IVOA"+ dlm+"IVOV"+ dlm+"Disable\n") 
+        #EGU, PREC, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV
+        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"EGU"+dlm+"PREC"+dlm+"HIHI"+dlm+"HIGH"+dlm+"LOW"+ dlm+"LOLO"+ dlm+"HHSV"+ dlm+"HSV"+ dlm+"LSV"+ dlm+"LLSV"+ dlm+"HYST"+ dlm+"IVOA"+ dlm+"IVOV"+ dlm+"Disable\n") 
         for i in list(sorted(aoaddr.keys(), key=str.casefold)):
             for j in list(scalers.keys()):
                 result = None
@@ -1253,7 +1256,7 @@ else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:             
-                    f.write("{}".format(i)+dlm*6+"0"+dlm+"0"+dlm+"0"+dlm+(dlm+"0")*12+"\n") 
+                    f.write("{}".format(i)+dlm*6+"0"+dlm+"0"+dlm+"0"+dlm+(dlm+"0")*13+"\n") 
         f.write(dlm+"\n"+dlm*8+"\n")     
 
         f.write("SCALER INI NAME"+dlm+"SCALER EQUIPMENT NAME"+dlm+"SCALER DESCRIPTION"+dlm+"Disable\n") 
