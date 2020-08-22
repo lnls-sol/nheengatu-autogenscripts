@@ -69,7 +69,7 @@ def printToInitFile(f, keys, csv, bl, eq, loc):
     for key,value in keys.items():
         if key in csv:
             if (csv[key]['INITIALIZE'] == 1 and csv[key]['DISABLE'] == '0'):
-                f.write("dbpf {0}:{4}:{1}:{2} {3}\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL'], loc))   
+                f.write("dbpf {0}:{4}:{1}:{2} \"{3}\"\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL'], loc))   
             
 
 def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
@@ -173,7 +173,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                         else:
                             print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))                        
                 else: # BO, BI   
-                    if (fname == "bi" or fname == "bo"):               
+                    if (fname == "bi" or fname == "bo" or fname == "stringin" or fname == "stringout"):               
                         for indx, key in enumerate(sorted_pins_keys):
                             if (key == 'BI_VECTOR'):
                                 continue
@@ -186,7 +186,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                         print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
                                     else:
                                         var_num += 1 
-                                        if (fname == "bi"):                                                   
+                                        if (fname == "bi" or fname == "stringin"):                                                   
                                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'])
                                         else:
                                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
@@ -247,6 +247,8 @@ header = '\n\
 ;  - [WAVEFORMXX]\n\
 ;  - [MBBI]\n\
 ;  - [MBBO]\n\
+;  - [STRINGIN]\n\
+;  - [STRINGOUT]\n\
 ;\n\
 ;      - Settings:\n\
 ;        The settings required to setup the CRIO environment are here\n\
@@ -296,6 +298,10 @@ header = '\n\
 ;        A list with all the MBBIs that will be read by Nheengatu and their respective addresses\n\
 ;      - MBBO:\n\
 ;        A list with all the MBBOs that will be written by Nheengatu and their respective addresses\n\
+;      - STRINGIN:\n\
+;        A list with all the STRINGINs that will be read by Nheengatu and their respective addresses\n\
+;      - STRINGOUT:\n\
+;        A list with all the STRINGOUTs that will be written by Nheengatu and their respective addresses\n\
 ;\n\
 ;\n\
 ;Naming Considerations:\n\
@@ -322,6 +328,8 @@ header = '\n\
 ;        Signed 32 bit   : RT_I32_<NAME>\n\
 ;        Signed 16 bit   : RT_I16_<NAME>\n\
 ;        Signed 08 bit   : RT_I08_<NAME>\n\
+;        String In       : RT_STI_<NAME>\n\
+;        String Out      : RT_STO_<NAME>\n\
 ;\n\
 ;\n\
 ;Checks implemented in the library:\n\
@@ -365,6 +373,8 @@ parser.add_argument("--bodtyp", help="DTYPE of BO record", default = 'CrioBO')
 parser.add_argument("--aodtyp", help="DTYPE of AO record", default = 'CrioAO')
 parser.add_argument("--mbbodtyp", help="DTYPE of MBBO record", default = 'CrioMBBO')
 parser.add_argument("--mbbidtyp", help="DTYPE of MBBI record", default = 'CrioMBBI')
+parser.add_argument("--stringindtyp",  help="DTYPE of STRINGIN record", default = 'CrioSTRINGIN')
+parser.add_argument("--stringoutdtyp", help="DTYPE of STRINGOUT record", default = 'CrioSTRINGOUT')
 parser.add_argument("--wfdtyp", help="DTYPE of WF record", default = 'CrioWAVEFORM')
 parser.add_argument("--crio", help="Name of the CRIO. Default is <CRIO1>", default = 'CRIO1')
 parser.add_argument("--loc", help="Name of the location of the CRIO. Default is Cabine <A>", default = 'A')
@@ -394,6 +404,8 @@ aoaddr = {}
 mbbiaddr = {}
 mbboaddr = {}
 aiaddr = {}
+strinaddr = {}
+stroutaddr = {}
 rtlist = []
 bidict = collections.OrderedDict()
 scalers = collections.defaultdict(dict)
@@ -407,6 +419,8 @@ csvmbbi = collections.defaultdict(dict)
 csvmbbo = collections.defaultdict(dict)
 csvwf = collections.defaultdict(dict)
 csvslr = collections.defaultdict(dict)
+csvstrin = collections.defaultdict(dict)
+csvstrout = collections.defaultdict(dict)
 
 csvairef = collections.defaultdict(dict)
 csvbiref = collections.defaultdict(dict)
@@ -416,6 +430,8 @@ csvmbbiref = collections.defaultdict(dict)
 csvmbboref = collections.defaultdict(dict)
 csvwfref = collections.defaultdict(dict)
 csvslrref = collections.defaultdict(dict)
+csvstrinref = collections.defaultdict(dict)
+csvstroutref = collections.defaultdict(dict)
 
 settings = {'Destination Crio IP' : args.ip,
             'Path':args.path,
@@ -706,8 +722,18 @@ if (args.useSM):
                                                                 else:
                                                                     csvwf[result.group(1)]['TypeEPICS'] = 'DOUBLE'                                                  
                                     rtvarCount += 1    
-                                else:                    
-                                    print("Found {} in RT.list file, but could not classify it.".format(val))       
+                                else:
+                                    result = re.search('RT_STI', val)
+                                    if (result is not None):
+                                        strinaddr[val]=i 
+                                        rtvarCount += 1
+                                    else: 
+                                        result = re.search('RT_STO', val)
+                                        if (result is not None):
+                                            stroutaddr[val]=i 
+                                            rtvarCount += 1
+                                        else:                                                         
+                                            print("Found {} in RT.list file, but could not classify it.".format(val))       
 
 
 print( "{} RT variables processed\n{} FPGA addresses extracted".format(rtvarCount, fpgavarCount))
@@ -765,7 +791,17 @@ if not (args.extract) :
                                         result = re.search('^MBBO INI NAME', lineSplit[0])
                                         if (result is not None):
                                             current = "MBBO"
-                                            continue                                                                           
+                                            continue   
+                                        else :               
+                                            result = re.search('^STRINGIN INI NAME', lineSplit[0])
+                                            if (result is not None):
+                                                current = "STRINGIN"
+                                                continue  
+                                            else :               
+                                                result = re.search('^STRINGOUT INI NAME', lineSplit[0])
+                                                if (result is not None):
+                                                    current = "STRINGOUT"
+                                                    continue                                                                          
             if (current == 'AI'):
                 #AI INI NAME,AI DB NAME,AI DESCRIPTION,AI Sign(FXP),AI Word Length(FXP),AI INTEGER LENGTH(FXP), SCAN
                 #    0            1          2              3               4                   5                6
@@ -1000,7 +1036,25 @@ if not (args.extract) :
                                             csvmbbo[lineSplit[0]]['DISABLE'] = lineSplit[58]
                                             
                                         else:
-                                            print("Could not classify data on line {0} in *.csv file".format(index))
+                                            if (current == 'STRINGIN'):
+                                                #STRINGIN INI NAME,STRINGIN DB NAME,STRINGIN DESCRIPTION, SCAN, DISABLE
+                                                #    0             1                2                   , 3    , 4
+                                                csvstrin[lineSplit[0]]['EQ'] = lineSplit[1]
+                                                csvstrin[lineSplit[0]]['DESC'] = lineSplit[2]
+                                                csvstrin[lineSplit[0]]['SCAN'] = lineSplit[3]
+                                                csvstrin[lineSplit[0]]['DISABLE'] = lineSplit[4]
+                                            else: 
+                                                if (current == 'STRINGOUT'):
+                                                    #STRINGOUT INI NAME,STRINGOUT SUB-EQUIPMENT NAME,STRINGOUT DESCRIPTION,AUTOSAVE,INITIALIZE,INIT VAL,Disable
+                                                    #    0               1                             2                   , 3,      4,          5    ,  6  
+                                                    csvstrout[lineSplit[0]]['EQ'] = lineSplit[1]
+                                                    csvstrout[lineSplit[0]]['DESC'] = lineSplit[2]
+                                                    csvstrout[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[3])
+                                                    csvstrout[lineSplit[0]]['INITIALIZE'] = int(lineSplit[4])
+                                                    csvstrout[lineSplit[0]]['INIT VAL'] = lineSplit[5]
+                                                    csvstrout[lineSplit[0]]['DISABLE'] = lineSplit[6]
+                                                else:
+                                                    print("Could not classify data on line {0} in *.csv file".format(index))
 
     # generate cfg.ini
     with open("{}/cfg.ini".format(args.dst) , "w") as f:
@@ -1014,6 +1068,8 @@ if not (args.extract) :
         printToCFGFile(f, 'BO', boaddr, csvbo, 1)
         printToCFGFile(f, 'MBBI', mbbiaddr, csvmbbi, 1)
         printToCFGFile(f, 'MBBO', mbboaddr, csvmbbo, 1)
+        printToCFGFile(f, 'STRINGIN', strinaddr, csvstrin, 1)
+        printToCFGFile(f, 'STRINGOUT', stroutaddr, csvstrout, 1)
         
         # Convert scaler names to list then to dictionary for printing
         scalerNameList = list(scalers.keys())
@@ -1035,6 +1091,7 @@ if not (args.extract) :
         printToReqFile(f, boaddr, csvbo, args.beamline, args.crio, args.loc)
         printToReqFile(f, aoaddr, csvao, args.beamline, args.crio, args.loc)
         printToReqFile(f, mbboaddr, csvmbbo, args.beamline, args.crio, args.loc)
+        printToReqFile(f, stroutaddr, csvstrout, args.beamline, args.crio, args.loc)
 
 
     # generate init-pv.cmd file
@@ -1043,6 +1100,7 @@ if not (args.extract) :
         printToInitFile(f, boaddr, csvbo, args.beamline, args.crio, args.loc)
         printToInitFile(f, aoaddr, csvao, args.beamline, args.crio, args.loc)
         printToInitFile(f, mbboaddr, csvmbbo, args.beamline, args.crio, args.loc)
+        printToInitFile(f, stroutaddr, csvstrout, args.beamline, args.crio, args.loc)
 
     # generate init-recsync.cmd file
     with open("{}/init-recsync.cmd".format(args.dst) , "w") as f:
@@ -1059,6 +1117,11 @@ if not (args.extract) :
     tplbdybi = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
     tplhdrbo = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
     tplbdybo = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
+    
+    tplhdrstrin = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
+    tplbdystrin = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
+    tplhdrstrout = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
+    tplbdystrout = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
     
     tplhdrai = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN, EGU, PREC, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST}}\n'
     tplbdyai = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
@@ -1105,7 +1168,8 @@ TVVL, TVSV, TTST, TTVL, TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, COSV, UNSV}}\n
     buildSub(tplmbbohdr, tplmbbobdy, args.beamline, args.mbbodtyp, mbboaddr, "devMBBOCRIO.db.template", 'mbbo', csvmbbo)
     buildSub(tplsclrhdr, tplsclrbdy, args.beamline, args.scalerdtyp, scalerNamesDict, "devSCALERCRIO.db.template", 'scaler', csvslr)
     buildSub(tplwfhdr, tplwfbdy, args.beamline, args.wfdtyp, waveformNamesDict, "devWAVEFORMCRIO.db.template", 'waveform', csvwf)
-
+    buildSub(tplhdrstrin, tplbdystrin, args.beamline, args.stringindtyp, strinaddr, "devSTRINGINCRIO.db.template", 'stringin', csvstrin)
+    buildSub(tplhdrstrout, tplbdystrout, args.beamline, args.stringoutdtyp, stroutaddr, "devSTRINGOUTCRIO.db.template", 'stringout', csvstrout)
     print("{0}{1} folder generated{2}".format(attr('bold'), args.dst, attr('reset')))
 
 else:
@@ -1160,7 +1224,17 @@ else:
                                         result = re.search('^MBBO INI NAME', lineSplit[0])
                                         if (result is not None):
                                             current = "MBBO"
-                                            continue                                                                           
+                                            continue
+                                        else :               
+                                            result = re.search('^STRINGIN INI NAME', lineSplit[0])
+                                            if (result is not None):
+                                                current = "STRINGIN"
+                                                continue  
+                                            else :               
+                                                result = re.search('^STRINGOUT INI NAME', lineSplit[0])
+                                                if (result is not None):
+                                                    current = "STRINGOUT"
+                                                    continue                                                                              
             if (current == 'AI'):
                 csvairef[lineSplit[0]] = val
                         
@@ -1189,6 +1263,12 @@ else:
                                     else:
                                         if (current == 'MBBO'):
                                             csvmbboref[lineSplit[0]] = val 
+                                        else:
+                                            if (current == 'STRINGIN'):
+                                                csvstrinref[lineSplit[0]] = val
+                                            else:
+                                                if (current == 'STRINGOUT'):
+                                                    csvstroutref[lineSplit[0]] = val
     
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
@@ -1291,4 +1371,20 @@ else:
             else:         
                 f.write("{}".format(i)+dlm*4+"0"+dlm+"NO_ALARM"+dlm*2+"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"1"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")                                      
-        
+
+        f.write("STRINGIN INI NAME"+dlm+"STRINGIN SUB-EQUIPMENT NAME"+dlm+"STRINGIN DESCRIPTION"+dlm+"SCAN"+dlm+"Disable\n") 
+        for i in list(sorted(strinaddr.keys(), key=str.casefold)):
+            if i in csvstrinref:
+                f.write(csvstrinref[i])
+            else: 
+                f.write("{}".format(i)+dlm*3+".1 second"+dlm+"0\n") 
+                           
+        f.write(dlm*8+"\n"+dlm*8+"\n")       
+                 
+        f.write("STRINGOUT INI NAME"+dlm+"STRINGOUT SUB-EQUIPMENT NAME"+dlm+"STRINGOUT DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
+        for i in list(sorted(stroutaddr.keys(), key=str.casefold)):
+            if i in csvstroutref:
+                f.write(csvstroutref[i])
+            else:        
+                f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
+        f.write(dlm*8+"\n"+dlm*8+"\n")        
