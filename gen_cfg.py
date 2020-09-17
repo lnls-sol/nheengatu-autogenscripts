@@ -1186,55 +1186,59 @@ else:
             if (not removedDelimiter):
                 continue
             lineSplit = val.split(dlm)
-            result = re.search('^AI INI NAME', lineSplit[0])
+            result = re.search('^#[\w]*3-\w-RIO[\d]*2', lineSplit[0])
             if (result is not None):
-                current = "AI"
                 continue
             else :
-                result = re.search('^BI INI NAME', lineSplit[0])
+                result = re.search('^AI INI NAME', lineSplit[0])
                 if (result is not None):
-                    current = "BI"
+                    current = "AI"
                     continue
                 else :
-                    result = re.search('^BO INI NAME', lineSplit[0])
+                    result = re.search('^BI INI NAME', lineSplit[0])
                     if (result is not None):
-                        current = "BO"
+                        current = "BI"
                         continue
-                    else :    
-                        result = re.search('^AO INI NAME', lineSplit[0])
+                    else :
+                        result = re.search('^BO INI NAME', lineSplit[0])
                         if (result is not None):
-                            current = "AO"
+                            current = "BO"
                             continue
-                        else :
-                            result = re.search('^SCALER INI NAME', lineSplit[0])
+                        else :    
+                            result = re.search('^AO INI NAME', lineSplit[0])
                             if (result is not None):
-                                current = "SCALER"
+                                current = "AO"
                                 continue
-                            else :               
-                                result = re.search('^WAVEFORM INI NAME', lineSplit[0])
+                            else :
+                                result = re.search('^SCALER INI NAME', lineSplit[0])
                                 if (result is not None):
-                                    current = "WAVEFORM"
+                                    current = "SCALER"
                                     continue
                                 else :               
-                                    result = re.search('^MBBI INI NAME', lineSplit[0])
+                                    result = re.search('^WAVEFORM INI NAME', lineSplit[0])
                                     if (result is not None):
-                                        current = "MBBI"
-                                        continue 
+                                        current = "WAVEFORM"
+                                        continue
                                     else :               
-                                        result = re.search('^MBBO INI NAME', lineSplit[0])
+                                        result = re.search('^MBBI INI NAME', lineSplit[0])
                                         if (result is not None):
-                                            current = "MBBO"
-                                            continue
+                                            current = "MBBI"
+                                            continue 
                                         else :               
-                                            result = re.search('^STRINGIN INI NAME', lineSplit[0])
+                                            result = re.search('^MBBO INI NAME', lineSplit[0])
                                             if (result is not None):
-                                                current = "STRINGIN"
-                                                continue  
+                                                current = "MBBO"
+                                                continue
                                             else :               
-                                                result = re.search('^STRINGOUT INI NAME', lineSplit[0])
+                                                result = re.search('^STRINGIN INI NAME', lineSplit[0])
                                                 if (result is not None):
-                                                    current = "STRINGOUT"
-                                                    continue                                                                              
+                                                    current = "STRINGIN"
+                                                    continue  
+                                                else :               
+                                                    result = re.search('^STRINGOUT INI NAME', lineSplit[0])
+                                                    if (result is not None):
+                                                        current = "STRINGOUT"
+                                                        continue                                                                              
             if (current == 'AI'):
                 csvairef[lineSplit[0]] = val
                         
@@ -1272,6 +1276,8 @@ else:
     
     # generate *.csv file here using the data extracted
     with open("{0}/{1}".format(args.src, args.cfgcsv) , "w") as f:
+        f.write("#"+args.beamline+'-'+args.loc+'-'+args.crio+'\n\n')
+
     #EGU, PREC, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST
         f.write("AI INI NAME"+dlm+"AI SUB-EQUIPMENT NAME"+dlm+"AI DESCRIPTION"+dlm+"AI Sign(FXP)"+dlm+"AI Word Length(FXP)"+dlm+"AI INTEGER LENGTH(FXP)"+dlm+"SCAN"+dlm+"EGU"+dlm+"PREC"+dlm+"HIHI"+dlm+"LOLO"+dlm+"HIGH"+dlm+"LOW"+dlm+"HHSV"+dlm+"LLSV"+dlm+"HSV"+dlm+"LSV"+dlm+"HYST"+dlm+"Disable\n") 
         result = None
