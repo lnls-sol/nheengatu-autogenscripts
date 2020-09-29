@@ -659,6 +659,13 @@ for line in lines:
 
 if (args.useSM):
     rtlist = [rt.rstrip() for rt in open('{}/RT.list'.format(args.src))]
+    result = re.search('smsize=([0-9]*)', rtlist[0])
+    if (result is not None):
+        settings['Shared Memory Size'] = result.group(1)
+        rtlist.pop(0)
+    else:
+        print (colored("Did not find the shared memory size in the RT file. Using size set by script {}...".format(args.smsize), 'red'))
+
     for i, val in enumerate(rtlist):
         result = re.search('RT_MBI', val)
         if (result is not None):
