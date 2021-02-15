@@ -168,7 +168,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                                     csv[key]['PINI'], csv[key]['INIT VAL'] )
                         else:
                             print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))                        
-                else: # BO, BI   
+                else: # BO, BI  , stringin, stringout 
                     if (fname == "bi" or fname == "bo" or fname == "stringin" or fname == "stringout"):               
                         for indx, key in enumerate(sorted_pins_keys):
                             if (key == 'BI_VECTOR'):
@@ -182,11 +182,15 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                         print(colored("ERROR: Key {0} has no 'SUB-EQUIPEMENT NAME' assigned.".format(key), 'red')) 
                                     else:
                                         var_num += 1 
-                                        if (fname == "bi" or fname == "stringin"):                                                   
+                                        if (fname == "bi"):                                                   
                                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'], csv[key]['ZNAM'], csv[key]['ONAM'])
-                                        else:
+                                        elif (fname == "stringin"):
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'])
+                                        elif (fname == "bo"):
                                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['HIGH'], csv[key]['ZNAM'], csv[key]['ONAM'], \
                                                                         csv[key]['PINI'], csv[key]['INIT VAL'])
+                                        else:
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['PINI'], csv[key]['INIT VAL'])
                                           
                             else:
                                 print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
@@ -1122,8 +1126,8 @@ if not (args.extract) :
     
     tplhdrstrin = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
     tplbdystrin = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
-    tplhdrstrout = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
-    tplbdystrout = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
+    tplhdrstrout = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, PINI, VAL}}\n'
+    tplbdystrout = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\"}}\n'
     
     tplhdrai = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN, EGU, PREC, HIHI, LOLO, HIGH, LOW, HHSV, LLSV, HSV, LSV, HYST}}\n'
     tplbdyai = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
