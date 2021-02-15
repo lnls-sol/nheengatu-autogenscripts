@@ -1141,7 +1141,7 @@ if not (args.extract) :
     tplmbbohdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DESC, PIN, DTYP, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL,\
 THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL,\
 EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL,\
-TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, PINI, RVAL  }}\n'
+TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, PINI, VAL  }}\n'
     tplmbbobdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\" \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
 \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\", \"{18}\", \"{19}\", \"{20}\", \"{21}\", \"{22}\", \"{23}\",\
 \"{24}\", \"{25}\", \"{26}\", \"{27}\", \"{28}\", \"{29}\", \"{30}\", \"{31}\", \"{32}\", \"{33}\", \"{34}\", \"{35}\",\
