@@ -43,7 +43,7 @@ import shutil
 def printToCFGFile(f, cfgkey, items, csv, use_csv, ):
     f.write("[{}]\n".format(cfgkey))
     for key,value in items.items():
-        result = re.search('FXP_', key)
+        result = re.search('FXP_', str(key))
         if (result is not None and csv[key]['DISABLE'] == '1'):
             continue
         else:
@@ -65,11 +65,6 @@ def printToReqFile(f, keys, csv, bl, eq, loc):
             if (csv[key]['AUTOSAVE'] == 1 and csv[key]['DISABLE'] == '0'):
                 f.write("{0}:{3}:{1}:{2}\n".format(bl, eq, csv[key]['EQ'], loc))   
 
-def printToInitFile(f, keys, csv, bl, eq, loc):
-    for key,value in keys.items():
-        if key in csv:
-            if (csv[key]['INITIALIZE'] == 1 and csv[key]['DISABLE'] == '0'):
-                f.write("dbpf {0}:{4}:{1}:{2} \"{3}\"\n".format(bl, eq, csv[key]['EQ'], csv[key]['INIT VAL'], loc))   
             
 
 def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
@@ -169,7 +164,8 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                                     csv[key]['FTST'], csv[key]['FTVL'], csv[key]['FTSV'], \
                                                     csv[key]['FFST'], csv[key]['FFVL'], csv[key]['FFSV'], \
                                                     csv[key]['IVOA'], csv[key]['IVOV'], \
-                                                    csv[key]['COSV'], csv[key]['UNSV'] )
+                                                    csv[key]['COSV'], csv[key]['UNSV'], \
+                                                    csv[key]['PINI'], csv[key]['INIT VAL'] )
                         else:
                             print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))                        
                 else: # BO, BI   
@@ -187,9 +183,11 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                     else:
                                         var_num += 1 
                                         if (fname == "bi" or fname == "stringin"):                                                   
-                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'])
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['SCAN'], csv[key]['ZNAM'], csv[key]['ONAM'])
                                         else:
-                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'])
+                                            tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], csv[key]['HIGH'], csv[key]['ZNAM'], csv[key]['ONAM'], \
+                                                                        csv[key]['PINI'], csv[key]['INIT VAL'])
+                                          
                             else:
                                 print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
                     else : #AO, AI
@@ -212,7 +210,7 @@ def buildSub(tplhdr, tplbdy, beamline, dtype, pins, dbtemplate, fname, csv):
                                             tpls = tpls + tplbdy.format(beamline, csv[key]['EQ'], dtype, key, csv[key]['DESC'], \
                                             csv[key]['EGU'], csv[key]['PREC'], csv[key]['HIHI'], csv[key]['HIGH'], csv[key]['LOW'], \
                                             csv[key]['LOLO'], csv[key]['HHSV'], csv[key]['HSV'], csv[key]['LSV'], csv[key]['LLSV'], \
-                                            csv[key]['HYST'], csv[key]['IVOA'], csv[key]['IVOV'] )
+                                            csv[key]['HYST'], csv[key]['IVOA'], csv[key]['IVOV'], csv[key]['PINI'], csv[key]['INIT VAL'] )
                             else:
                                 print(colored("WARNING: Found {0} in header/RT.list but not in csv. Is this intentional?".format(key), 'red'))
             
@@ -850,14 +848,14 @@ if not (args.extract) :
       
             else: 
                 if (current == 'AO'):
-                    #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, INITIALIZE, INIT VAL
+                    #AO INI NAME,AO DB NAME,AO DESCRIPTION,AO Sign(FXP),AO Word Length(FXP),AO INTEGER LENGTH(FXP), AUTOSAVE, PINI, INIT VAL
                     #    0            1          2              3               4                   5                 6           7          8
                     #EGU, PREC,  HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV, DISABLE
                     # 9    10    11    12    13    14    15   16   17    18    19    20    21      22
                     csvao[lineSplit[0]]['EQ'] = lineSplit[1]
                     csvao[lineSplit[0]]['DESC'] = lineSplit[2]
                     csvao[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[6]) 
-                    csvao[lineSplit[0]]['INITIALIZE'] = int(lineSplit[7]) 
+                    csvao[lineSplit[0]]['PINI'] = int(lineSplit[7]) 
                     csvao[lineSplit[0]]['INIT VAL'] = float(lineSplit[8]) 
                     csvao[lineSplit[0]]['DISABLE'] = lineSplit[22]
                     if not csvao[lineSplit[0]]['DISABLE']:
@@ -897,7 +895,9 @@ if not (args.extract) :
                         csvbi[lineSplit[0]]['EQ'] = lineSplit[1]
                         csvbi[lineSplit[0]]['DESC'] = lineSplit[2]
                         csvbi[lineSplit[0]]['SCAN'] = lineSplit[3]
-                        csvbi[lineSplit[0]]['DISABLE'] = lineSplit[4]
+                        csvbi[lineSplit[0]]['ZNAM'] = lineSplit[4]
+                        csvbi[lineSplit[0]]['ONAM'] = lineSplit[5]
+                        csvbi[lineSplit[0]]['DISABLE'] = lineSplit[6]
                     else: 
                         if (current == 'BO'):
                             #BO INI NAME,BO DB NAME,BO DESCRIPTION, AUTOSAVE
@@ -905,9 +905,12 @@ if not (args.extract) :
                             csvbo[lineSplit[0]]['EQ'] = lineSplit[1]
                             csvbo[lineSplit[0]]['DESC'] = lineSplit[2]   
                             csvbo[lineSplit[0]]['AUTOSAVE']   = int(lineSplit[3])
-                            csvbo[lineSplit[0]]['INITIALIZE'] = int(lineSplit[4]) 
+                            csvbo[lineSplit[0]]['PINI'] = int(lineSplit[4]) 
                             csvbo[lineSplit[0]]['INIT VAL'] = int(lineSplit[5])  
-                            csvbo[lineSplit[0]]['DISABLE'] = lineSplit[6]                            
+                            csvbo[lineSplit[0]]['ZNAM'] = lineSplit[6]
+                            csvbo[lineSplit[0]]['ONAM'] = lineSplit[7]
+                            csvbo[lineSplit[0]]['HIGH'] = float(lineSplit[8])
+                            csvbo[lineSplit[0]]['DISABLE'] = lineSplit[9]                            
                         else: 
                             if (current == 'WAVEFORM'):
                                 #WAVEFORM INI NAME, DB NAME, DESCRIPTION, SIZE
@@ -1038,7 +1041,7 @@ if not (args.extract) :
                                             csvmbbo[lineSplit[0]]['COSV'] = lineSplit[53]
                                             csvmbbo[lineSplit[0]]['UNSV'] = lineSplit[54]
                                             csvmbbo[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[55])
-                                            csvmbbo[lineSplit[0]]['INITIALIZE'] = int(lineSplit[56])
+                                            csvmbbo[lineSplit[0]]['PINI'] = int(lineSplit[56])
                                             csvmbbo[lineSplit[0]]['INIT VAL'] = lineSplit[57]
                                             csvmbbo[lineSplit[0]]['DISABLE'] = lineSplit[58]
                                             
@@ -1052,12 +1055,12 @@ if not (args.extract) :
                                                 csvstrin[lineSplit[0]]['DISABLE'] = lineSplit[4]
                                             else: 
                                                 if (current == 'STRINGOUT'):
-                                                    #STRINGOUT INI NAME,STRINGOUT SUB-EQUIPMENT NAME,STRINGOUT DESCRIPTION,AUTOSAVE,INITIALIZE,INIT VAL,Disable
+                                                    #STRINGOUT INI NAME,STRINGOUT SUB-EQUIPMENT NAME,STRINGOUT DESCRIPTION,AUTOSAVE,PINI,INIT VAL,Disable
                                                     #    0               1                             2                   , 3,      4,          5    ,  6  
                                                     csvstrout[lineSplit[0]]['EQ'] = lineSplit[1]
                                                     csvstrout[lineSplit[0]]['DESC'] = lineSplit[2]
                                                     csvstrout[lineSplit[0]]['AUTOSAVE'] = int(lineSplit[3])
-                                                    csvstrout[lineSplit[0]]['INITIALIZE'] = int(lineSplit[4])
+                                                    csvstrout[lineSplit[0]]['PINI'] = int(lineSplit[4])
                                                     csvstrout[lineSplit[0]]['INIT VAL'] = lineSplit[5]
                                                     csvstrout[lineSplit[0]]['DISABLE'] = lineSplit[6]
                                                 else:
@@ -1101,14 +1104,6 @@ if not (args.extract) :
         printToReqFile(f, stroutaddr, csvstrout, args.beamline, args.crio, args.loc)
 
 
-    # generate init-pv.cmd file
-    with open("{}/init-pv.cmd".format(args.dst) , "w") as f:
-        print(colored ("Generating {}/init-pv.cmd".format(args.dst), 'green'))
-        printToInitFile(f, boaddr, csvbo, args.beamline, args.crio, args.loc)
-        printToInitFile(f, aoaddr, csvao, args.beamline, args.crio, args.loc)
-        printToInitFile(f, mbboaddr, csvmbbo, args.beamline, args.crio, args.loc)
-        printToInitFile(f, stroutaddr, csvstrout, args.beamline, args.crio, args.loc)
-
     # generate init-recsync.cmd file
     with open("{}/init-recsync.cmd".format(args.dst) , "w") as f:
         print(colored ("Generating {}/recsync-pv.cmd".format(args.dst), 'green'))
@@ -1120,10 +1115,10 @@ if not (args.extract) :
         f.write(args.beamline+"-"+args.loc+"-"+args.crio+"\n")           
 
     #template definitions
-    tplhdrbi = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
-    tplbdybi = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
-    tplhdrbo = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC}}\n'
-    tplbdybo = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\"}}\n'
+    tplhdrbi = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN, ZNAM, ONAM}}\n'
+    tplbdybi = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"}}\n'    
+    tplhdrbo = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, HIGH, ZNAM, ONAM, PINI, VAL}}\n'
+    tplbdybo = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\"}}\n'
     
     tplhdrstrin = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, SCAN}}\n'
     tplbdystrin = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\"}}\n'    
@@ -1134,9 +1129,9 @@ if not (args.extract) :
     tplbdyai = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
 , \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\"}}\n'  
   
-    tplhdrao = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, EGU, PREC, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV}}\n'
+    tplhdrao = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, PIN, DESC, EGU, PREC, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV, PINI, VAL}}\n'
     tplbdyao = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\"\
-, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\"}}\n'
+, \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\", \"{18}\", \"{19}\"}}\n'
 
     tplsclrhdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DTYP, FREQ, PIN, DESC}}\n'
     tplsclrbdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\", \"{2}\", \"10000000\", \"{3}\", \"{4}\"}}\n'
@@ -1146,12 +1141,12 @@ if not (args.extract) :
     tplmbbohdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DESC, PIN, DTYP, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV, THST, THVL,\
 THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL, SVSV, EIST, EIVL,\
 EISV, NIST, NIVL, NISV, TEST, TEVL, TESV, ELST, ELVL, ELSV, TVST, TVVL, TVSV, TTST, TTVL,\
-TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV }}\n'
+TTSV, FTST, FTVL, FTSV, FFST, FFVL, FFSV, IVOA, IVOV, COSV, UNSV, PINI, RVAL  }}\n'
     tplmbbobdy = '{{\"{0}", \"'+args.loc+'", "'+args.crio+':{1}\" \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",\
 \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\", \"{18}\", \"{19}\", \"{20}\", \"{21}\", \"{22}\", \"{23}\",\
 \"{24}\", \"{25}\", \"{26}\", \"{27}\", \"{28}\", \"{29}\", \"{30}\", \"{31}\", \"{32}\", \"{33}\", \"{34}\", \"{35}\",\
 \"{36}\", \"{37}\", \"{38}\", \"{39}\", \"{40}\", \"{41}\", \"{42}\", \"{43}\", \"{44}\", \"{45}\", \"{46}\", \"{47}\",\
-\"{48}\", \"{49}\", \"{50}\", \"{51}\", \"{52}\", \"{53}\", \"{54}\", \"{55}\", \"{56}\"}}'
+\"{48}\", \"{49}\", \"{50}\", \"{51}\", \"{52}\", \"{53}\", \"{54}\", \"{55}\", \"{56}\", \"{57}\", \"{58}\"}}\n'
     
     tplmbbihdr = 'file \"$(TOP)/db/{0}\"\n{{\npattern\n{{BL, LOC, EQ, DESC, PIN, DTYP, SCAN, ZRST, ZRVL, ZRSV, ONST, ONVL, ONSV, TWST, TWVL, TWSV,\
 THST, THVL, THSV, FRST, FRVL, FRSV, FVST, FVVL, FVSV, SXST, SXVL, SXSV, SVST, SVVL,\
@@ -1308,32 +1303,32 @@ else:
         f.write(""+dlm*8+"\n"+dlm*8+"\n")  
         
         
-        f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION"+dlm+"SCAN"+dlm+"Disable\n") 
+        f.write("BI INI NAME"+dlm+"BI SUB-EQUIPMENT NAME"+dlm+"BI DESCRIPTION"+dlm+"SCAN"+dlm+"ZNAM"+dlm+"ONAM"+dlm+"Disable\n") 
         for i in list(sorted(biaddr.keys(), key=str.casefold)):
             if (i != "BI_VECTOR"):
                 if i in csvbiref:
                     f.write(csvbiref[i])
                 else: 
-                    f.write("{}".format(i)+dlm*3+".1 second"+dlm+"0\n") 
+                    f.write("{}".format(i)+dlm*3+".1 second"+dlm+"False"+dlm+"True"+dlm+"0\n") 
                     
         for i in bidict.values():
             if i in csvbiref:
                 f.write(csvbiref[i])
             else:
-                f.write("{}".format(i)+dlm*3+".1 second"+dlm+"0\n")  
+                f.write("{}".format(i)+dlm*3+".1 second"+dlm+"False"+dlm+"True"+dlm+"0\n")  
                            
         f.write(dlm*8+"\n"+dlm*8+"\n")       
                  
-        f.write("BO INI NAME"+dlm+"BO SUB-EQUIPMENT NAME"+dlm+"BO DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
+        f.write("BO INI NAME"+dlm+"BO SUB-EQUIPMENT NAME"+dlm+"BO DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"PINI"+dlm+"INIT VAL"+dlm+"ZNAM"+dlm+"ONAM"+dlm+"HIGH"+dlm+"Disable\n") 
         for i in list(sorted(boaddr.keys(), key=str.casefold)):
             if i in csvboref:
                 f.write(csvboref[i])
             else:        
-                f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"0\n") 
+                f.write("{}".format(i)+dlm*3+"0"+dlm+"0"+dlm+"0"+dlm+"False"+dlm+"True"+dlm+"0"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")   
 
         #EGU, PREC, HIHI, HIGH, LOW, LOLO, HHSV, HSV, LSV, LLSV, HYST, IVOA, IVOV
-        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"EGU"+dlm+"PREC"+dlm+"HIHI"+dlm+"HIGH"+dlm+"LOW"+ dlm+"LOLO"+ dlm+"HHSV"+ dlm+"HSV"+ dlm+"LSV"+ dlm+"LLSV"+ dlm+"HYST"+ dlm+"IVOA"+ dlm+"IVOV"+ dlm+"Disable\n") 
+        f.write("AO INI NAME"+dlm+"AO SUB-EQUIPMENT NAME"+dlm+"AO DESCRIPTION"+dlm+"AO Sign(FXP)"+dlm+"AO Word Length(FXP)"+dlm+"AO INTEGER LENGTH(FXP)"+dlm+"AUTOSAVE"+dlm+"PINI"+dlm+"INIT VAL"+dlm+"EGU"+dlm+"PREC"+dlm+"HIHI"+dlm+"HIGH"+dlm+"LOW"+ dlm+"LOLO"+ dlm+"HHSV"+ dlm+"HSV"+ dlm+"LSV"+ dlm+"LLSV"+ dlm+"HYST"+ dlm+"IVOA"+ dlm+"IVOV"+ dlm+"Disable\n") 
         for i in list(sorted(aoaddr.keys(), key=str.casefold)):
             for j in list(scalers.keys()):
                 result = None
@@ -1344,7 +1339,7 @@ else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
                 else:              
-                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"64"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+(dlm+"0")*12+"\n")   
+                    f.write("{}".format(i)+dlm*3+"1"+dlm+"64"+dlm+"64"+dlm+"0"+dlm+"0"+dlm+"0"+dlm+(dlm+"0")*13+"\n")   
             else:
                 if i in csvaoref:
                     f.write(csvaoref[i])
@@ -1377,7 +1372,7 @@ else:
 +"1"+dlm+"INVALID"+dlm*2+"2"+dlm+"INVALID"+dlm*2+"3"+dlm+"INVALID"+dlm*2+"4"+dlm+"INVALID"+dlm*2+"5"+dlm+"INVALID"+dlm*2+"6"+dlm+"INVALID"+dlm*2+"7"+dlm+"INVALID"+dlm*2+"8"+dlm+"INVALID"+dlm*2+"9"+dlm+"INVALID"+dlm*2+"10"+dlm+"INVALID"+dlm*2+"11"+dlm+"INVALID"+dlm*2+"12"+dlm+"INVALID"+dlm*2+"13"+dlm+"INVALID"+dlm*2+"14"+dlm+"INVALID"+dlm*2+"15"+dlm+"INVALID"+dlm+"0"+dlm+"0"+dlm+".1 second"+dlm+"0\n") 
         f.write(dlm*8+"\n"+dlm*8+"\n")      
         
-        f.write("MBBO INI NAME"+dlm+"MBBO SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" IVOA"+dlm+" IVOV"+dlm+" COSV"+dlm+" UNSV"+dlm+" AUTOSAVE"+dlm+" INITIALIZE"+dlm+" INIT VAL"+dlm+"Disable\n") 
+        f.write("MBBO INI NAME"+dlm+"MBBO SUB-EQUIPMENT NAME"+dlm+" DESCRIPTION"+dlm+" ZRST"+dlm+" ZRVL"+dlm+" ZRSV"+dlm+" ONST"+dlm+" ONVL"+dlm+" ONSV"+dlm+" TWST"+dlm+" TWVL"+dlm+" TWSV"+dlm+" THST"+dlm+" THVL"+dlm+" THSV"+dlm+" FRST"+dlm+" FRVL"+dlm+" FRSV"+dlm+" FVST"+dlm+" FVVL"+dlm+" FVSV"+dlm+" SXST"+dlm+" SXVL"+dlm+" SXSV"+dlm+" SVST"+dlm+" SVVL"+dlm+" SVSV"+dlm+" EIST"+dlm+" EIVL"+dlm+" EISV"+dlm+" NIST"+dlm+" NIVL"+dlm+" NISV"+dlm+" TEST"+dlm+" TEVL"+dlm+" TESV"+dlm+" ELST"+dlm+" ELVL"+dlm+" ELSV"+dlm+" TVST"+dlm+" TVVL"+dlm+" TVSV"+dlm+" TTST"+dlm+" TTVL"+dlm+" TTSV"+dlm+" FTST"+dlm+" FTVL"+dlm+" FTSV"+dlm+" FFST"+dlm+" FFVL"+dlm+" FFSV"+dlm+" IVOA"+dlm+" IVOV"+dlm+" COSV"+dlm+" UNSV"+dlm+" AUTOSAVE"+dlm+" PINI"+dlm+" INIT VAL"+dlm+"Disable\n") 
         for i in list(sorted(mbboaddr.keys(), key=str.casefold)):
             if i in csvmbboref:
                 f.write(csvmbboref[i])
@@ -1394,7 +1389,7 @@ else:
                            
         f.write(dlm*8+"\n"+dlm*8+"\n")       
                  
-        f.write("STRINGOUT INI NAME"+dlm+"STRINGOUT SUB-EQUIPMENT NAME"+dlm+"STRINGOUT DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"INITIALIZE"+dlm+"INIT VAL"+dlm+"Disable\n") 
+        f.write("STRINGOUT INI NAME"+dlm+"STRINGOUT SUB-EQUIPMENT NAME"+dlm+"STRINGOUT DESCRIPTION"+dlm+" AUTOSAVE"+dlm+"PINI"+dlm+"INIT VAL"+dlm+"Disable\n") 
         for i in list(sorted(stroutaddr.keys(), key=str.casefold)):
             if i in csvstroutref:
                 f.write(csvstroutref[i])
